@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DIG Governance Pilot — Renton Technical College</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,700;1,300&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── CSS VARIABLES ── */
+:root {
+  --bg:       #F5F4F0;
+  --surface:  #FFFFFF;
+  --navy:     #1C2B4A;
+  --blue:     #2156A8;
+  --blue-lt:  #EBF0FA;
+  --teal:     #1A6B72;
+  --teal-lt:  #E4F2F3;
+  --amber:    #915C0A;
+  --amber-lt: #FDF3E3;
+  --red:      #9B2335;
+  --red-lt:   #FCEDEF;
+  --green:    #2D6A3F;
+  --green-lt: #E8F5ED;
+  --gray:     #6B7280;
+  --border:   #DDD9D0;
+  --text:     #1A1A1A;
+  --text-sm:  #4B5563;
+  --shadow:   0 2px 12px rgba(28,43,74,0.08);
+  --radius:   6px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ── HEADER ── */
+.site-header {
+  background: var(--navy);
+  color: white;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.site-header .logo {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.site-header .logo-primary {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: white;
+}
+.site-header .logo-secondary {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.55);
+}
+.header-badge {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.8);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+
+/* ── TABS ── */
+.tab-bar {
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  gap: 0;
+  position: sticky;
+  top: 64px;
+  z-index: 99;
+}
+.tab-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 14px 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--navy); }
+.tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+.tab-count {
+  background: var(--blue-lt);
+  color: var(--blue);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+.tab-btn.active .tab-count { background: var(--blue); color: white; }
+
+/* ── MAIN ── */
+.main { padding: 28px 32px; max-width: 1280px; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── PAGE HEADERS ── */
+.page-header { margin-bottom: 24px; }
+.page-title {
+  font-family: 'Fraunces', serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--navy);
+  line-height: 1.2;
+}
+.page-subtitle { font-size: 13px; color: var(--gray); margin-top: 4px; }
+
+/* ── TOOLBAR ── */
+.toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.search-box {
+  flex: 1;
+  min-width: 220px;
+  max-width: 360px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  background: var(--surface);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.search-box:focus { border-color: var(--blue); }
+.filter-select {
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+}
+.btn {
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-primary { background: var(--blue); color: white; }
+.btn-primary:hover { background: #1a4590; }
+.btn-secondary { background: var(--surface); color: var(--navy); border: 1.5px solid var(--border); }
+.btn-secondary:hover { border-color: var(--navy); }
+.btn-danger { background: var(--red-lt); color: var(--red); border: 1.5px solid var(--red); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* ── TABLE ── */
+.data-table {
+  width: 100%;
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  border-collapse: collapse;
+  overflow: hidden;
+}
+.data-table thead tr { background: var(--navy); }
+.data-table thead th {
+  padding: 11px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.8);
+}
+.data-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+.data-table tbody tr:last-child { border-bottom: none; }
+.data-table tbody tr:hover { background: var(--bg); }
+.data-table td { padding: 11px 14px; vertical-align: top; font-size: 13px; }
+.data-table td.meta { font-size: 12px; color: var(--gray); }
+.data-table td.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+
+/* ── BADGES ── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-blue    { background: var(--blue-lt); color: var(--blue); }
+.badge-teal    { background: var(--teal-lt); color: var(--teal); }
+.badge-amber   { background: var(--amber-lt); color: var(--amber); }
+.badge-red     { background: var(--red-lt); color: var(--red); }
+.badge-green   { background: var(--green-lt); color: var(--green); }
+.badge-gray    { background: #F3F4F6; color: var(--gray); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  padding: 28px;
+  width: 560px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; color: var(--navy); }
+.modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--gray); line-height: 1; padding: 2px; }
+.modal-close:hover { color: var(--text); }
+
+/* ── FORM ── */
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 12px; font-weight: 600; color: var(--navy); margin-bottom: 5px; letter-spacing: 0.3px; }
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--blue); }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* ── CARDS (decisions) ── */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+.card {
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 18px;
+  border-left: 4px solid var(--border);
+  transition: box-shadow 0.15s;
+}
+.card:hover { box-shadow: 0 4px 20px rgba(28,43,74,0.12); }
+.card.priority-blocking { border-left-color: var(--red); }
+.card.priority-high     { border-left-color: var(--amber); }
+.card.priority-medium   { border-left-color: var(--blue); }
+.card.priority-design   { border-left-color: var(--green); }
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.card-title { font-weight: 600; color: var(--navy); font-size: 14px; line-height: 1.3; }
+.card-body { font-size: 12px; color: var(--text-sm); line-height: 1.5; margin-bottom: 12px; }
+.card-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 11px; color: var(--gray); }
+.card-actions { display: flex; gap: 6px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+
+/* ── KANBAN (workstreams) ── */
+.kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.kanban-col { background: var(--bg); border-radius: 8px; padding: 14px; }
+.kanban-col-header {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.kanban-card {
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  border-top: 3px solid var(--border);
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.kanban-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.12); }
+.kanban-card.phase-1 { border-top-color: var(--red); }
+.kanban-card.phase-2 { border-top-color: var(--amber); }
+.kanban-card.phase-3 { border-top-color: var(--green); }
+.kanban-card-title { font-weight: 600; font-size: 12px; color: var(--navy); margin-bottom: 4px; line-height: 1.3; }
+.kanban-card-domain { font-size: 11px; color: var(--gray); }
+
+/* ── ISSUE LOG ── */
+.issue-form-wrapper {
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.issue-form-title { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 16px; }
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--gray);
+}
+.empty-icon { font-size: 32px; margin-bottom: 8px; }
+.empty-label { font-size: 14px; font-weight: 500; color: var(--text-sm); }
+.empty-sub { font-size: 12px; margin-top: 4px; }
+
+/* ── SUMMARY BAR ── */
+.summary-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.summary-card {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 16px 20px;
+  box-shadow: var(--shadow);
+  border-top: 3px solid var(--blue);
+}
+.summary-card.red   { border-top-color: var(--red); }
+.summary-card.amber { border-top-color: var(--amber); }
+.summary-card.green { border-top-color: var(--green); }
+.summary-num { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 600; color: var(--navy); line-height: 1; }
+.summary-label { font-size: 11px; color: var(--gray); margin-top: 4px; font-weight: 500; letter-spacing: 0.3px; }
+
+@media (max-width: 900px) {
+  .main { padding: 16px; }
+  .tab-bar { padding: 0 16px; overflow-x: auto; }
+  .kanban { grid-template-columns: 1fr 1fr; }
+  .summary-bar { grid-template-columns: 1fr 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo">
+    <span class="logo-primary">DIG Governance</span>
+    <span class="logo-secondary">Renton Technical College · Pilot</span>
+  </div>
+  <span class="header-badge">Data Management &amp; Policy Workgroup</span>
+</header>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('dict')">
+    📖 Data Dictionary <span class="tab-count" id="count-dict">0</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('work')">
+    ⚙️ Workstreams <span class="tab-count" id="count-work">0</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('dec')">
+    🔓 Governance Decisions <span class="tab-count" id="count-dec">0</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('issues')">
+    🚩 Data Issue Log <span class="tab-count" id="count-issues">0</span>
+  </button>
+</div>
+
+<div class="main">
+
+  <!-- ── DICTIONARY ── -->
+  <div id="tab-dict" class="tab-panel active">
+    <div class="page-header">
+      <div class="page-title">Data Dictionary</div>
+      <div class="page-subtitle">Institutional definitions for all APR and governance metrics — the single most valuable artifact DIG can produce.</div>
+    </div>
+    <div class="toolbar">
+      <input class="search-box" id="dict-search" placeholder="Search terms, definitions, owners…" oninput="renderDict()">
+      <select class="filter-select" id="dict-filter-domain" onchange="renderDict()">
+        <option value="">All Domains</option>
+        <option>1 — Definitions & Standards</option>
+        <option>2 — Collection Integrity</option>
+        <option>3 — Access & Security</option>
+        <option>4 — Reporting & Analytics</option>
+        <option>5 — Stakeholder Coordination</option>
+      </select>
+      <button class="btn btn-primary" onclick="openModal('dict')">+ Add Term</button>
+    </div>
+    <table class="data-table" id="dict-table">
+      <thead>
+        <tr>
+          <th>Term</th>
+          <th>Definition</th>
+          <th>Source System</th>
+          <th>Calculation Method</th>
+          <th>Domain</th>
+          <th>Owner</th>
+          <th>Last Review</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="dict-body"></tbody>
+    </table>
+  </div>
+
+  <!-- ── WORKSTREAMS ── -->
+  <div id="tab-work" class="tab-panel">
+    <div class="page-header">
+      <div class="page-title">Workstream Tracker</div>
+      <div class="page-subtitle">Eight named workstreams across the seven governance domains. Phase 1 unblocks the APR dashboard build.</div>
+    </div>
+    <div class="summary-bar" id="work-summary"></div>
+    <div class="toolbar">
+      <select class="filter-select" id="work-filter-phase" onchange="renderWork()">
+        <option value="">All Phases</option>
+        <option>Phase 1</option><option>Phase 2</option><option>Phase 3</option>
+      </select>
+      <select class="filter-select" id="work-filter-status" onchange="renderWork()">
+        <option value="">All Statuses</option>
+        <option>Not Started</option><option>In Progress</option><option>Blocked</option><option>Complete</option>
+      </select>
+      <button class="btn btn-primary" onclick="openModal('work')">+ Add Workstream</button>
+    </div>
+    <div class="kanban" id="work-kanban"></div>
+  </div>
+
+  <!-- ── DECISIONS ── -->
+  <div id="tab-dec" class="tab-panel">
+    <div class="page-header">
+      <div class="page-title">Governance Decisions Board</div>
+      <div class="page-subtitle">Eight open decisions that are prerequisites for the APR dashboard build. Resolving these in DIG gives them institutional authority.</div>
+    </div>
+    <div class="summary-bar" id="dec-summary"></div>
+    <div class="toolbar">
+      <select class="filter-select" id="dec-filter-priority" onchange="renderDec()">
+        <option value="">All Priorities</option>
+        <option>🔴 Blocking</option><option>🟡 Priority</option><option>🟢 Design Phase</option>
+      </select>
+      <select class="filter-select" id="dec-filter-status" onchange="renderDec()">
+        <option value="">All Statuses</option>
+        <option>Open</option><option>In Review</option><option>Resolved</option>
+      </select>
+      <button class="btn btn-primary" onclick="openModal('dec')">+ Add Decision</button>
+    </div>
+    <div class="card-grid" id="dec-grid"></div>
+  </div>
+
+  <!-- ── ISSUES ── -->
+  <div id="tab-issues" class="tab-panel">
+    <div class="page-header">
+      <div class="page-title">Data Issue Log</div>
+      <div class="page-subtitle">Faculty submit data integrity concerns. IR acknowledges within 2 business days, resolves within 10.</div>
+    </div>
+    <div class="issue-form-wrapper">
+      <div class="issue-form-title">Submit a Data Issue</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Your Name</label>
+          <input class="form-input" id="iss-name" placeholder="Faculty or staff name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Program</label>
+          <input class="form-input" id="iss-program" placeholder="e.g. CNT, Healthcare, All Programs">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Metric or Data Point</label>
+          <input class="form-input" id="iss-metric" placeholder="e.g. Q1→Q2 Retention, Enrollment HC">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date Observed</label>
+          <input class="form-input" type="date" id="iss-date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description of Issue</label>
+        <textarea class="form-textarea" id="iss-desc" placeholder="Describe what looks wrong and where you saw it. The more detail, the faster IR can investigate."></textarea>
+      </div>
+      <div style="display:flex;justify-content:flex-end;">
+        <button class="btn btn-primary" onclick="submitIssue()">Submit Issue</button>
+      </div>
+    </div>
+    <div class="toolbar">
+      <input class="search-box" id="iss-search" placeholder="Search issues…" oninput="renderIssues()">
+      <select class="filter-select" id="iss-filter-status" onchange="renderIssues()">
+        <option value="">All Statuses</option>
+        <option>Open</option><option>Under Review</option><option>Resolved</option>
+      </select>
+    </div>
+    <div id="iss-table-wrap"></div>
+  </div>
+</div>
+
+<!-- ── MODAL ── -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal-content">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Add Entry</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ── SEED DATA ──────────────────────────────────────────────────────────────────
+const SEED = {
+  dict: [
+    { id: 1, term: "Enrollment Headcount (HC)", definition: "The unduplicated count of students enrolled in a program at census date. Each student counted once regardless of how many courses they take.", sourceSystem: "ctcLink", calcMethod: "Count of distinct Student IDs with active enrollment at census date, per program CIP code.", domain: "1 — Definitions & Standards", owner: "IR", lastReview: "2026-02-01" },
+    { id: 2, term: "Annualized FTE", definition: "Full-time equivalent enrollment calculated across the academic year. Measures instructional load, not student count.", sourceSystem: "ctcLink", calcMethod: "Sum of student credit hours ÷ 45 (WA State standard divisor). Does NOT include WV-coded bypass students at 0 credit.", domain: "1 — Definitions & Standards", owner: "IR", lastReview: "2026-02-01" },
+    { id: 3, term: "Q1 → Q2 Retention", definition: "Percentage of students who enrolled in Quarter 1 of a program and remained enrolled in Quarter 2 of the same program.", sourceSystem: "ctcLink", calcMethod: "Students enrolled Q2 ÷ Students enrolled Q1 (same cohort, same program academic plan code), measured at each quarter's census date.", domain: "1 — Definitions & Standards", owner: "IR", lastReview: "2026-02-01" },
+    { id: 4, term: "Completion Rate", definition: "Percentage of a cohort who earned a credential (certificate, AAS, AAS-T) within 150% of normal program length.", sourceSystem: "ctcLink", calcMethod: "Students who earned credential within 150% time ÷ students in entry cohort. Reported on 3-year lag. WA SBCTC Student Achievement Initiative definition.", domain: "1 — Definitions & Standards", owner: "IR", lastReview: "2026-02-01" },
+    { id: 5, term: "Census Date", definition: "The official date after which enrollment is 'locked' for reporting purposes. Students who add/drop after census date are not counted in that term's enrollment snapshot.", sourceSystem: "ctcLink", calcMethod: "Set by Registrar per SBCTC calendar. Typically 10th instructional day of each quarter. PENDING DIG FORMAL ADOPTION.", domain: "1 — Definitions & Standards", owner: "DIG (Pending)", lastReview: "OPEN" },
+    { id: 6, term: "Student Learning Outcome (SLO)", definition: "A measurable statement of what a student will know, be able to do, or value as a result of completing a course or program.", sourceSystem: "Canvas", calcMethod: "Assessed via rubric in Canvas outcomes tool. Aggregated at course and program level. Standard rubric format PENDING DIG/Curriculum Committee adoption.", domain: "2 — Collection Integrity", owner: "Faculty + Curriculum Committee", lastReview: "OPEN" },
+    { id: 7, term: "WV (Waiver) Code", definition: "ctcLink enrollment code for students who bypass a course via credential verification, receiving no credit but remaining visible in headcount data.", sourceSystem: "ctcLink", calcMethod: "Coded by Registrar upon faculty recommendation and Dean approval. Student appears in HC at 0 credit. Does NOT count toward FTE. Required for APR equity analysis.", domain: "1 — Definitions & Standards", owner: "Registrar + IR", lastReview: "2026-02-26" },
+    { id: 8, term: "CPL (Prior Learning) Code", definition: "ctcLink enrollment code for students who receive credit for prior learning — industry certifications, military training, or portfolio assessment.", sourceSystem: "ctcLink", calcMethod: "Credit awarded based on faculty SLO evaluation (70% alignment threshold). Graded P or NP. Counts toward credential hours and appears in completion data.", domain: "1 — Definitions & Standards", owner: "Registrar + Faculty", lastReview: "2026-02-26" },
+  ],
+  work: [
+    { id: 1, name: "Achievement Standards Framework", domain: "1 — Definitions & Standards", description: "Establish agreed calculation methods for all student achievement metrics used in APR.", phase: "Phase 1", status: "Not Started", owner: "", notes: "" },
+    { id: 2, name: "Outcomes Audit Program", domain: "4 — Reporting & Analytics", description: "Annual audit of SLO data completeness and consistency across programs.", phase: "Phase 1", status: "Not Started", owner: "", notes: "" },
+    { id: 3, name: "Occupation Classification Policy", domain: "1 — Definitions & Standards", description: "Standardize CIP/SOC code assignments and review process for all programs.", phase: "Phase 1", status: "In Progress", owner: "Ren Tarvin", notes: "CIP 11.0901 confirmed for CNT. SOC alignment documented in APR narrative." },
+    { id: 4, name: "Feedback Data Integrity Plan", domain: "2 — Collection Integrity", description: "Ensure course evaluation data is collected consistently and coded correctly across all programs.", phase: "Phase 2", status: "Not Started", owner: "", notes: "" },
+    { id: 5, name: "Definitions Handbook", domain: "1 — Definitions & Standards", description: "Single published reference for all institutional data terms — faculty-facing, plain language.", phase: "Phase 2", status: "Not Started", owner: "", notes: "Draft structure exists in Data Dictionary tab. Needs DIG review before publication." },
+    { id: 6, name: "Calculation Guide", domain: "4 — Reporting & Analytics", description: "Step-by-step documentation of how each APR metric is calculated from source data.", phase: "Phase 2", status: "Not Started", owner: "", notes: "" },
+    { id: 7, name: "Data Quality Scorecard", domain: "7 — Advanced Integrity", description: "Program-level data quality score surfaced in Power BI — flags missing or suspect data before APR cycle opens.", phase: "Phase 3", status: "Not Started", owner: "", notes: "" },
+    { id: 8, name: "Anomaly Alert System", domain: "7 — Advanced Integrity", description: "Automated Power BI alerts for outlier patterns: achievement gaps, enrollment spikes, missing SLO entries.", phase: "Phase 3", status: "Not Started", owner: "", notes: "" },
+  ],
+  dec: [
+    { id: 1, decision: "Census Date Definition", detail: "When is enrollment 'locked' for a cohort? Which census date applies to retention and completion calculations?", owner: "IR + DIG", priority: "🔴 Blocking", status: "Open", notes: "" },
+    { id: 2, decision: "Cohort Definition", detail: "Which students count in retention and completion calculations? How are late-adds, withdrawals, and bypass students handled?", owner: "IR + Academic Affairs", priority: "🔴 Blocking", status: "Open", notes: "" },
+    { id: 3, decision: "Suppression Rules", detail: "Minimum cell sizes for demographic disaggregation in APR reporting — below what threshold is data suppressed for FERPA compliance?", owner: "DIG + Legal", priority: "🔴 Blocking", status: "Open", notes: "" },
+    { id: 4, decision: "Finance Data MOU", detail: "What access restrictions apply to budget and cost-per-FTE data? Does including it in Power BI require a formal data sharing agreement with Finance?", owner: "Finance + IT + DIG", priority: "🟡 Priority", status: "Open", notes: "" },
+    { id: 5, decision: "Canvas SLO Standardization", detail: "Curriculum Committee or faculty leads must agree on a standard SLO rubric format in Canvas before any SLO data pipeline can be built.", owner: "Curriculum Committee", priority: "🟡 Priority", status: "Open", notes: "" },
+    { id: 6, decision: "Power BI Licensing Confirmation", detail: "IT to confirm whether existing M365 agreement includes Power BI Pro and how many seats are available.", owner: "IT", priority: "🟡 Priority", status: "Open", notes: "" },
+    { id: 7, decision: "IR Capacity Assessment", detail: "Confirm whether IR has staff bandwidth to lead the data pipeline build, or whether a phased approach or external consultant is needed.", owner: "IR + VPI", priority: "🟡 Priority", status: "Open", notes: "" },
+    { id: 8, decision: "Accessibility Review Standard", detail: "Confirm Power BI dashboard meets WCAG 2.1 AA — color-blind users, screen reader compatibility. Must be built into design phase, not added after.", owner: "IT + DIG", priority: "🟢 Design Phase", status: "Open", notes: "" },
+  ],
+  issues: []
+};
+
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let state = {};
+function load() {
+  const saved = localStorage.getItem('dig_pilot_v1');
+  if (saved) { try { state = JSON.parse(saved); } catch(e) { state = {}; } }
+  if (!state.dict)   state.dict   = [...SEED.dict];
+  if (!state.work)   state.work   = [...SEED.work];
+  if (!state.dec)    state.dec    = [...SEED.dec];
+  if (!state.issues) state.issues = [...SEED.issues];
+}
+function save() { localStorage.setItem('dig_pilot_v1', JSON.stringify(state)); updateCounts(); }
+function nextId(arr) { return arr.length ? Math.max(...arr.map(x => x.id)) + 1 : 1; }
+
+// ── TABS ───────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (tab === 'dict')   renderDict();
+  if (tab === 'work')   renderWork();
+  if (tab === 'dec')    renderDec();
+  if (tab === 'issues') renderIssues();
+}
+function updateCounts() {
+  document.getElementById('count-dict').textContent   = state.dict.length;
+  document.getElementById('count-work').textContent   = state.work.length;
+  document.getElementById('count-dec').textContent    = state.dec.filter(d => d.status !== 'Resolved').length;
+  document.getElementById('count-issues').textContent = state.issues.filter(i => i.status !== 'Resolved').length;
+}
+
+// ── BADGES ────────────────────────────────────────────────────────────────────
+function statusBadge(s) {
+  const m = { 'Not Started':'gray','In Progress':'blue','Blocked':'red','Complete':'green','Open':'red','In Review':'amber','Under Review':'amber','Resolved':'green' };
+  return `<span class="badge badge-${m[s]||'gray'}">${s}</span>`;
+}
+function phaseBadge(p) {
+  const m = { 'Phase 1':'red','Phase 2':'amber','Phase 3':'green' };
+  return `<span class="badge badge-${m[p]||'gray'}">${p}</span>`;
+}
+function priorityBadge(p) {
+  if (p.includes('🔴')) return `<span class="badge badge-red">🔴 Blocking</span>`;
+  if (p.includes('🟡')) return `<span class="badge badge-amber">🟡 Priority</span>`;
+  return `<span class="badge badge-green">🟢 Design</span>`;
+}
+
+// ── DICTIONARY ────────────────────────────────────────────────────────────────
+function renderDict() {
+  const q = (document.getElementById('dict-search').value||'').toLowerCase();
+  const fd = document.getElementById('dict-filter-domain').value;
+  let rows = state.dict.filter(d =>
+    (!q || [d.term,d.definition,d.owner,d.sourceSystem].some(f => f.toLowerCase().includes(q))) &&
+    (!fd || d.domain === fd)
+  );
+  const body = document.getElementById('dict-body');
+  if (!rows.length) { body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--gray)">No terms found.</td></tr>`; return; }
+  body.innerHTML = rows.map(d => `
+    <tr>
+      <td><strong>${d.term}</strong></td>
+      <td style="max-width:260px">${d.definition}</td>
+      <td class="mono">${d.sourceSystem}</td>
+      <td style="max-width:200px;font-size:12px;color:var(--text-sm)">${d.calcMethod}</td>
+      <td><span class="badge badge-blue" style="font-size:10px">${d.domain.split('—')[0].trim()}</span></td>
+      <td class="meta">${d.owner}</td>
+      <td class="meta">${d.lastReview === 'OPEN' ? '<span class="badge badge-red">OPEN</span>' : d.lastReview}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="editEntry('dict',${d.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="deleteEntry('dict',${d.id})">×</button>
+      </td>
+    </tr>`).join('');
+}
+
+// ── WORKSTREAMS ───────────────────────────────────────────────────────────────
+const WS_STATUSES = ['Not Started','In Progress','Blocked','Complete'];
+function renderWork() {
+  const fp = document.getElementById('work-filter-phase').value;
+  const fs = document.getElementById('work-filter-status').value;
+  let items = state.work.filter(w => (!fp || w.phase === fp) && (!fs || w.status === fs));
+
+  // Summary bar
+  const counts = WS_STATUSES.map(s => state.work.filter(w => w.status === s).length);
+  document.getElementById('work-summary').innerHTML = [
+    ['Not Started', counts[0], ''],
+    ['In Progress', counts[1], ''],
+    ['Blocked', counts[2], 'red'],
+    ['Complete', counts[3], 'green']
+  ].map(([label, n, cls]) => `
+    <div class="summary-card ${cls}">
+      <div class="summary-num">${n}</div>
+      <div class="summary-label">${label}</div>
+    </div>`).join('');
+
+  // Kanban
+  const kanban = document.getElementById('work-kanban');
+  kanban.innerHTML = WS_STATUSES.map(status => {
+    const cards = items.filter(w => w.status === status);
+    return `
+      <div class="kanban-col">
+        <div class="kanban-col-header">
+          <span>${status}</span>
+          <span class="tab-count" style="background:var(--border);color:var(--gray)">${cards.length}</span>
+        </div>
+        ${cards.map(w => `
+          <div class="kanban-card phase-${w.phase.split(' ')[1]}" onclick="editEntry('work',${w.id})">
+            <div class="kanban-card-title">${w.name}</div>
+            <div class="kanban-card-domain">${w.domain.split('—')[0].trim()}</div>
+            <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+              ${phaseBadge(w.phase)}
+              ${w.owner ? `<span class="badge badge-teal" style="font-size:10px">${w.owner}</span>` : ''}
+            </div>
+          </div>`).join('')}
+      </div>`;
+  }).join('');
+}
+
+// ── DECISIONS ─────────────────────────────────────────────────────────────────
+function renderDec() {
+  const fp = document.getElementById('dec-filter-priority').value;
+  const fs = document.getElementById('dec-filter-status').value;
+  let items = state.dec.filter(d =>
+    (!fp || d.priority === fp) &&
+    (!fs || d.status === fs)
+  );
+  const open = state.dec.filter(d => d.status === 'Open').length;
+  const review = state.dec.filter(d => d.status === 'In Review').length;
+  const resolved = state.dec.filter(d => d.status === 'Resolved').length;
+  document.getElementById('dec-summary').innerHTML = `
+    <div class="summary-card red"><div class="summary-num">${open}</div><div class="summary-label">Open / Blocking</div></div>
+    <div class="summary-card amber"><div class="summary-num">${review}</div><div class="summary-label">In Review</div></div>
+    <div class="summary-card green"><div class="summary-num">${resolved}</div><div class="summary-label">Resolved</div></div>
+    <div class="summary-card"><div class="summary-num">${state.dec.length}</div><div class="summary-label">Total Decisions</div></div>`;
+  const grid = document.getElementById('dec-grid');
+  if (!items.length) { grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--gray)">No items match the current filter.</div>`; return; }
+  const priorityClass = p => p.includes('🔴') ? 'priority-blocking' : p.includes('🟡') ? 'priority-high' : 'priority-design';
+  grid.innerHTML = items.map(d => `
+    <div class="card ${priorityClass(d.priority)}">
+      <div class="card-top">
+        <div class="card-title">${d.decision}</div>
+        ${priorityBadge(d.priority)}
+      </div>
+      <div class="card-body">${d.detail}</div>
+      <div class="card-meta">
+        ${statusBadge(d.status)}
+        <span>Owner: <strong>${d.owner}</strong></span>
+      </div>
+      ${d.notes ? `<div style="margin-top:10px;font-size:12px;color:var(--text-sm);background:var(--bg);padding:8px 10px;border-radius:4px">📝 ${d.notes}</div>` : ''}
+      <div class="card-actions">
+        <button class="btn btn-secondary btn-sm" onclick="editEntry('dec',${d.id})">Update</button>
+        ${d.status !== 'Resolved' ? `<button class="btn btn-primary btn-sm" onclick="resolveDecision(${d.id})">Mark Resolved</button>` : ''}
+      </div>
+    </div>`).join('');
+}
+function resolveDecision(id) {
+  const d = state.dec.find(x => x.id === id);
+  if (d) { d.status = 'Resolved'; save(); renderDec(); }
+}
+
+// ── ISSUES ────────────────────────────────────────────────────────────────────
+function submitIssue() {
+  const name    = document.getElementById('iss-name').value.trim();
+  const program = document.getElementById('iss-program').value.trim();
+  const metric  = document.getElementById('iss-metric').value.trim();
+  const date    = document.getElementById('iss-date').value;
+  const desc    = document.getElementById('iss-desc').value.trim();
+  if (!name || !desc) { alert('Please fill in your name and a description of the issue.'); return; }
+  state.issues.unshift({ id: nextId(state.issues), submitter: name, program, metric, date: date || new Date().toISOString().split('T')[0], description: desc, status: 'Open', irNotes: '', dateSubmitted: new Date().toISOString().split('T')[0] });
+  save();
+  ['iss-name','iss-program','iss-metric','iss-date','iss-desc'].forEach(id => document.getElementById(id).value = '');
+  renderIssues();
+}
+function renderIssues() {
+  const q  = (document.getElementById('iss-search').value||'').toLowerCase();
+  const fs = document.getElementById('iss-filter-status').value;
+  let rows = state.issues.filter(i =>
+    (!q  || [i.submitter,i.program,i.metric,i.description].some(f => (f||'').toLowerCase().includes(q))) &&
+    (!fs || i.status === fs)
+  );
+  const wrap = document.getElementById('iss-table-wrap');
+  if (!rows.length) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-label">No issues logged yet.</div><div class="empty-sub">Submit one above or adjust your filter.</div></div>`;
+    return;
+  }
+  wrap.innerHTML = `<table class="data-table">
+    <thead><tr><th>Submitted</th><th>Submitter</th><th>Program</th><th>Metric</th><th>Description</th><th>Status</th><th>IR Notes</th><th>Actions</th></tr></thead>
+    <tbody>${rows.map(i => `
+      <tr>
+        <td class="meta">${i.dateSubmitted}</td>
+        <td><strong>${i.submitter}</strong></td>
+        <td class="meta">${i.program||'—'}</td>
+        <td class="mono">${i.metric||'—'}</td>
+        <td style="max-width:220px;font-size:12px">${i.description}</td>
+        <td>${statusBadge(i.status)}</td>
+        <td style="max-width:160px;font-size:12px;color:var(--text-sm)">${i.irNotes||'—'}</td>
+        <td><button class="btn btn-secondary btn-sm" onclick="editEntry('issues',${i.id})">Update</button></td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+// ── MODAL FORMS ───────────────────────────────────────────────────────────────
+let currentModal = { type: null, id: null };
+
+function openModal(type, id = null) {
+  currentModal = { type, id };
+  const overlay = document.getElementById('modal-overlay');
+  const title   = document.getElementById('modal-title');
+  const body    = document.getElementById('modal-body');
+  const item = id ? state[type].find(x => x.id === id) : null;
+  const v = (field, fallback = '') => item ? (item[field] || fallback) : fallback;
+
+  if (type === 'dict') {
+    title.textContent = id ? 'Edit Term' : 'Add Term';
+    body.innerHTML = `
+      <div class="form-group"><label class="form-label">Term *</label><input class="form-input" id="f-term" value="${v('term')}"></div>
+      <div class="form-group"><label class="form-label">Definition *</label><textarea class="form-textarea" id="f-def">${v('definition')}</textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Source System</label><input class="form-input" id="f-src" value="${v('sourceSystem')}"></div>
+        <div class="form-group"><label class="form-label">Domain</label>
+          <select class="form-select" id="f-domain">
+            ${['1 — Definitions & Standards','2 — Collection Integrity','3 — Access & Security','4 — Reporting & Analytics','5 — Stakeholder Coordination'].map(d => `<option ${v('domain')===d?'selected':''}>${d}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Calculation Method</label><textarea class="form-textarea" id="f-calc" style="min-height:60px">${v('calcMethod')}</textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="f-owner" value="${v('owner')}"></div>
+        <div class="form-group"><label class="form-label">Last Review Date</label><input class="form-input" id="f-review" value="${v('lastReview')}"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveDict()">Save Term</button>
+      </div>`;
+  } else if (type === 'work') {
+    title.textContent = id ? 'Edit Workstream' : 'Add Workstream';
+    body.innerHTML = `
+      <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="f-name" value="${v('name')}"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="f-desc">${v('description')}</textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Domain</label>
+          <select class="form-select" id="f-domain">
+            ${['1 — Definitions & Standards','2 — Collection Integrity','3 — Access & Security','4 — Reporting & Analytics','5 — Stakeholder Coordination','6 — Knowledge Management','7 — Advanced Integrity'].map(d => `<option ${v('domain')===d?'selected':''}>${d}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Phase</label>
+          <select class="form-select" id="f-phase">
+            ${['Phase 1','Phase 2','Phase 3'].map(p => `<option ${v('phase')===p?'selected':''}>${p}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="f-status">
+            ${WS_STATUSES.map(s => `<option ${v('status')===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="f-owner" value="${v('owner')}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="f-notes" style="min-height:60px">${v('notes')}</textarea></div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveWork()">Save Workstream</button>
+      </div>`;
+  } else if (type === 'dec') {
+    title.textContent = id ? 'Update Decision' : 'Add Decision';
+    body.innerHTML = `
+      <div class="form-group"><label class="form-label">Decision *</label><input class="form-input" id="f-decision" value="${v('decision')}"></div>
+      <div class="form-group"><label class="form-label">Detail</label><textarea class="form-textarea" id="f-detail">${v('detail')}</textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="f-owner" value="${v('owner')}"></div>
+        <div class="form-group"><label class="form-label">Priority</label>
+          <select class="form-select" id="f-priority">
+            ${['🔴 Blocking','🟡 Priority','🟢 Design Phase'].map(p => `<option ${v('priority')===p?'selected':''}>${p}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="f-status">
+            ${['Open','In Review','Resolved'].map(s => `<option ${v('status')===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes / Resolution</label><textarea class="form-textarea" id="f-notes">${v('notes')}</textarea></div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveDec()">Save</button>
+      </div>`;
+  } else if (type === 'issues') {
+    title.textContent = 'Update Issue';
+    body.innerHTML = `
+      <div class="form-group"><label class="form-label">Status</label>
+        <select class="form-select" id="f-status">
+          ${['Open','Under Review','Resolved'].map(s => `<option ${v('status')===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">IR Notes</label><textarea class="form-textarea" id="f-notes">${v('irNotes')}</textarea></div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveIssue()">Save Update</button>
+      </div>`;
+  }
+  overlay.classList.add('open');
+}
+
+function closeModal()  { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModalOutside(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+function editEntry(type, id) { openModal(type, id); }
+function deleteEntry(type, id) {
+  if (!confirm('Delete this entry?')) return;
+  state[type] = state[type].filter(x => x.id !== id);
+  save();
+  if (type === 'dict') renderDict();
+}
+
+function g(id) { return (document.getElementById(id)||{}).value?.trim() || ''; }
+
+function saveDict() {
+  const item = { term: g('f-term'), definition: g('f-def'), sourceSystem: g('f-src'), domain: g('f-domain'), calcMethod: g('f-calc'), owner: g('f-owner'), lastReview: g('f-review') };
+  if (!item.term) { alert('Term is required.'); return; }
+  if (currentModal.id) { Object.assign(state.dict.find(x => x.id === currentModal.id), item); }
+  else { state.dict.push({ id: nextId(state.dict), ...item }); }
+  save(); closeModal(); renderDict();
+}
+function saveWork() {
+  const item = { name: g('f-name'), description: g('f-desc'), domain: g('f-domain'), phase: g('f-phase'), status: g('f-status'), owner: g('f-owner'), notes: g('f-notes') };
+  if (!item.name) { alert('Name is required.'); return; }
+  if (currentModal.id) { Object.assign(state.work.find(x => x.id === currentModal.id), item); }
+  else { state.work.push({ id: nextId(state.work), ...item }); }
+  save(); closeModal(); renderWork();
+}
+function saveDec() {
+  const item = { decision: g('f-decision'), detail: g('f-detail'), owner: g('f-owner'), priority: g('f-priority'), status: g('f-status'), notes: g('f-notes') };
+  if (!item.decision) { alert('Decision title is required.'); return; }
+  if (currentModal.id) { Object.assign(state.dec.find(x => x.id === currentModal.id), item); }
+  else { state.dec.push({ id: nextId(state.dec), ...item }); }
+  save(); closeModal(); renderDec();
+}
+function saveIssue() {
+  const item = { status: g('f-status'), irNotes: g('f-notes') };
+  if (currentModal.id) { Object.assign(state.issues.find(x => x.id === currentModal.id), item); }
+  save(); closeModal(); renderIssues();
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+load();
+updateCounts();
+renderDict();
+</script>
+</body>
+</html>
