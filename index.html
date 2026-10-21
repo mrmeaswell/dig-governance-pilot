@@ -374,7 +374,45 @@ body {
 .summary-num { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 600; color: var(--navy); line-height: 1; }
 .summary-label { font-size: 11px; color: var(--gray); margin-top: 4px; font-weight: 500; letter-spacing: 0.3px; }
 
+/* ── HEADER RIGHT / AUTH ── */
+.header-right { display: flex; align-items: center; gap: 10px; }
+.header-btn {
+  background: white; color: var(--navy); border: none; border-radius: 20px;
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+  padding: 5px 12px; cursor: pointer;
+}
+.header-user { font-size: 12px; color: rgba(255,255,255,0.8); }
+
+/* ── MODE BANNER ── */
+.mode-banner {
+  padding: 10px 32px; font-size: 12px; display: flex; gap: 12px;
+  align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border);
+}
+.mode-banner.local  { background: var(--amber-lt); color: var(--amber); }
+.mode-banner.shared { background: var(--green-lt); color: var(--green); }
+.mode-banner.error  { background: var(--red-lt); color: var(--red); }
+.mode-banner:empty { display: none; }
+
+/* ── CHARTER ── */
+.charter-intro {
+  background: var(--surface); border-radius: 8px; box-shadow: var(--shadow);
+  padding: 20px 24px; margin-bottom: 24px; border-left: 4px solid var(--navy);
+}
+.charter-intro p { color: var(--text-sm); margin-bottom: 8px; max-width: 900px; }
+.charter-intro p:last-child { margin-bottom: 0; }
+.charter-facts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.section-title {
+  font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600;
+  color: var(--navy); margin: 28px 0 4px;
+}
+.section-sub { font-size: 12px; color: var(--gray); margin-bottom: 12px; }
+.ev-link { color: var(--blue); cursor: pointer; text-decoration: underline; background: none; border: none; font: inherit; font-size: 12px; padding: 0; }
+.table-scroll { overflow-x: auto; border-radius: 8px; }
+
 @media (max-width: 900px) {
+  .mode-banner { padding: 10px 16px; }
+  .site-header { padding: 0 16px; }
+  .header-badge { display: none; }
   .main { padding: 16px; }
   .tab-bar { padding: 0 16px; overflow-x: auto; }
   .kanban { grid-template-columns: 1fr 1fr; }
@@ -390,23 +428,30 @@ body {
     <span class="logo-primary">DIG Governance</span>
     <span class="logo-secondary">Renton Technical College · Pilot</span>
   </div>
-  <span class="header-badge">Data Management &amp; Policy Workgroup</span>
+  <div class="header-right">
+    <span class="header-badge">Data Management &amp; Policy Workgroup</span>
+    <span id="auth-area"></span>
+  </div>
 </header>
 
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('dict')">
+  <button class="tab-btn active" onclick="switchTab(this,'dict')">
     📖 Data Dictionary <span class="tab-count" id="count-dict">0</span>
   </button>
-  <button class="tab-btn" onclick="switchTab('work')">
+  <button class="tab-btn" onclick="switchTab(this,'work')">
     ⚙️ Workstreams <span class="tab-count" id="count-work">0</span>
   </button>
-  <button class="tab-btn" onclick="switchTab('dec')">
+  <button class="tab-btn" onclick="switchTab(this,'dec')">
     🔓 Governance Decisions <span class="tab-count" id="count-dec">0</span>
   </button>
-  <button class="tab-btn" onclick="switchTab('issues')">
+  <button class="tab-btn" onclick="switchTab(this,'issues')">
     🚩 Data Issue Log <span class="tab-count" id="count-issues">0</span>
   </button>
+  <button class="tab-btn" onclick="switchTab(this,'charter')">
+    📜 Charter &amp; Evidence <span class="tab-count" id="count-charter">0</span>
+  </button>
 </div>
+<div class="mode-banner" id="mode-banner"></div>
 
 <div class="main">
 
@@ -420,15 +465,10 @@ body {
       <input class="search-box" id="dict-search" placeholder="Search terms, definitions, owners…" oninput="renderDict()">
       <select class="filter-select" id="dict-filter-domain" onchange="renderDict()">
         <option value="">All Domains</option>
-        <option>1 — Definitions & Standards</option>
-        <option>2 — Collection Integrity</option>
-        <option>3 — Access & Security</option>
-        <option>4 — Reporting & Analytics</option>
-        <option>5 — Stakeholder Coordination</option>
       </select>
       <button class="btn btn-primary" onclick="openModal('dict')">+ Add Term</button>
     </div>
-    <table class="data-table" id="dict-table">
+    <div class="table-scroll"><table class="data-table" id="dict-table">
       <thead>
         <tr>
           <th>Term</th>
@@ -442,14 +482,14 @@ body {
         </tr>
       </thead>
       <tbody id="dict-body"></tbody>
-    </table>
+    </table></div>
   </div>
 
   <!-- ── WORKSTREAMS ── -->
   <div id="tab-work" class="tab-panel">
     <div class="page-header">
       <div class="page-title">Workstream Tracker</div>
-      <div class="page-subtitle">Eight named workstreams across the seven governance domains. Phase 1 unblocks the APR dashboard build.</div>
+      <div class="page-subtitle" id="work-subtitle">Workstreams across the seven governance domains. Phase 1 unblocks the APR dashboard build.</div>
     </div>
     <div class="summary-bar" id="work-summary"></div>
     <div class="toolbar">
@@ -470,7 +510,7 @@ body {
   <div id="tab-dec" class="tab-panel">
     <div class="page-header">
       <div class="page-title">Governance Decisions Board</div>
-      <div class="page-subtitle">Eight open decisions that are prerequisites for the APR dashboard build. Resolving these in DIG gives them institutional authority.</div>
+      <div class="page-subtitle" id="dec-subtitle">Open decisions, including the prerequisites for the APR dashboard build. Resolving these in DIG gives them institutional authority.</div>
     </div>
     <div class="summary-bar" id="dec-summary"></div>
     <div class="toolbar">
@@ -532,6 +572,31 @@ body {
     </div>
     <div id="iss-table-wrap"></div>
   </div>
+
+  <!-- ── CHARTER & EVIDENCE ── -->
+  <div id="tab-charter" class="tab-panel">
+    <div class="page-header">
+      <div class="page-title">Charter &amp; Evidence</div>
+      <div class="page-subtitle">How this site answers the DIG Statement of Purpose and Priorities, and the accreditation evidence it produces.</div>
+    </div>
+    <div class="charter-intro">
+      <p><strong>Purpose.</strong> DIG promotes shared accountability for data across key administrative stakeholders. It is a working committee that identifies data integrity challenges, recommends solutions, and implements action plans so data is collected, entered, and used consistently for institutional planning and reporting.</p>
+      <p><strong>Scope.</strong> Data collection, analysis, security, and distribution, across two areas: <em>data management</em> (infrastructure &amp; pipelines) and <em>data analytics</em> (insights &amp; measurements).</p>
+      <div class="charter-facts">
+        <span class="badge badge-blue">Chaired by Institutional Research</span>
+        <span class="badge badge-blue">Meets monthly</span>
+        <span class="badge badge-blue">Members attend ≥ 50% of meetings</span>
+        <span class="badge badge-blue">Membership reviewed annually</span>
+        <span class="badge badge-blue">Recommendations forwarded with opposing views</span>
+      </div>
+    </div>
+    <div class="section-title">Charter goals → where the work lives</div>
+    <div class="section-sub">The minimum tasks the charter assigns to DIG, with live status from this site.</div>
+    <div class="table-scroll" id="charter-goals"></div>
+    <div class="section-title">Accreditation evidence checklist</div>
+    <div class="section-sub">Artifacts the charter says DIG must be ready to present. "Gap" means this site doesn't capture it yet.</div>
+    <div class="table-scroll" id="charter-evidence"></div>
+  </div>
 </div>
 
 <!-- ── MODAL ── -->
@@ -545,110 +610,366 @@ body {
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.28.1/lib/msal-browser.min.js"></script>
 <script>
+// ── CONFIG ─────────────────────────────────────────────────────────────────────
+// Fill these in after CTS registers the app (see setup/provision-sharepoint-lists.ps1).
+// While clientId is blank the site runs in Local Preview mode (each browser keeps its own copy).
+const M365_CONFIG = {
+  tenantId:     '',   // RTC Entra ID tenant (Directory) ID
+  clientId:     '',   // App registration (SPA) Application (client) ID
+  siteHostname: '',   // e.g. 'rtcedu.sharepoint.com'
+  sitePath:     '',   // e.g. '/sites/DIG'  (leave blank for the root site)
+  lists: {
+    dict:   'DIG Data Dictionary',
+    work:   'DIG Workstreams',
+    dec:    'DIG Decisions',
+    issues: 'DIG Data Issues'
+  }
+};
+const GRAPH_SCOPES = ['User.Read', 'Sites.ReadWrite.All'];
+
+// ── DOMAINS (single source of truth) ──────────────────────────────────────────
+const DOMAINS = [
+  '1 — Definitions & Standards',
+  '2 — Collection Integrity',
+  '3 — Access & Security',
+  '4 — Reporting & Analytics',
+  '5 — Stakeholder Coordination',
+  '6 — Knowledge Management',
+  '7 — Advanced Integrity'
+];
+
 // ── SEED DATA ──────────────────────────────────────────────────────────────────
+// Each seed has a stable `key` so new seeds can be merged into existing data without duplicates.
 const SEED = {
   dict: [
-    { id: 1, term: "Enrollment Headcount (HC)", definition: "The unduplicated count of students enrolled in a program at census date. Each student counted once regardless of how many courses they take.", sourceSystem: "ctcLink", calcMethod: "Count of distinct Student IDs with active enrollment at census date, per program CIP code.", domain: "1 — Definitions & Standards", owner: "IR", lastReview: "2026-02-01" },
-    { id: 2, term: "Annualized FTE", definition: "Full-time equivalent enrollment calculated across the academic year. Measures instructional load, not student count.", sourceSystem: "ctcLink", calcMethod: "Sum of student credit hours ÷ 45 (WA State standard divisor). Does NOT include WV-coded bypass students at 0 credit.", domain: "1 — Definitions & Standards", owner: "IR", lastReview: "2026-02-01" },
-    { id: 3, term: "Q1 → Q2 Retention", definition: "Percentage of students who enrolled in Quarter 1 of a program and remained enrolled in Quarter 2 of the same program.", sourceSystem: "ctcLink", calcMethod: "Students enrolled Q2 ÷ Students enrolled Q1 (same cohort, same program academic plan code), measured at each quarter's census date.", domain: "1 — Definitions & Standards", owner: "IR", lastReview: "2026-02-01" },
-    { id: 4, term: "Completion Rate", definition: "Percentage of a cohort who earned a credential (certificate, AAS, AAS-T) within 150% of normal program length.", sourceSystem: "ctcLink", calcMethod: "Students who earned credential within 150% time ÷ students in entry cohort. Reported on 3-year lag. WA SBCTC Student Achievement Initiative definition.", domain: "1 — Definitions & Standards", owner: "IR", lastReview: "2026-02-01" },
-    { id: 5, term: "Census Date", definition: "The official date after which enrollment is 'locked' for reporting purposes. Students who add/drop after census date are not counted in that term's enrollment snapshot.", sourceSystem: "ctcLink", calcMethod: "Set by Registrar per SBCTC calendar. Typically 10th instructional day of each quarter. PENDING DIG FORMAL ADOPTION.", domain: "1 — Definitions & Standards", owner: "DIG (Pending)", lastReview: "OPEN" },
-    { id: 6, term: "Student Learning Outcome (SLO)", definition: "A measurable statement of what a student will know, be able to do, or value as a result of completing a course or program.", sourceSystem: "Canvas", calcMethod: "Assessed via rubric in Canvas outcomes tool. Aggregated at course and program level. Standard rubric format PENDING DIG/Curriculum Committee adoption.", domain: "2 — Collection Integrity", owner: "Faculty + Curriculum Committee", lastReview: "OPEN" },
-    { id: 7, term: "WV (Waiver) Code", definition: "ctcLink enrollment code for students who bypass a course via credential verification, receiving no credit but remaining visible in headcount data.", sourceSystem: "ctcLink", calcMethod: "Coded by Registrar upon faculty recommendation and Dean approval. Student appears in HC at 0 credit. Does NOT count toward FTE. Required for APR equity analysis.", domain: "1 — Definitions & Standards", owner: "Registrar + IR", lastReview: "2026-02-26" },
-    { id: 8, term: "CPL (Prior Learning) Code", definition: "ctcLink enrollment code for students who receive credit for prior learning — industry certifications, military training, or portfolio assessment.", sourceSystem: "ctcLink", calcMethod: "Credit awarded based on faculty SLO evaluation (70% alignment threshold). Graded P or NP. Counts toward credential hours and appears in completion data.", domain: "1 — Definitions & Standards", owner: "Registrar + Faculty", lastReview: "2026-02-26" },
+    { key: "d1", term: "Enrollment Headcount (HC)", definition: "The unduplicated count of students enrolled in a program at census date. Each student counted once regardless of how many courses they take.", sourceSystem: "ctcLink", calcMethod: "Count of distinct Student IDs with active enrollment at census date, per program CIP code.", domain: "1 — Definitions & Standards", owner: "IR", lastReview: "2026-02-01" },
+    { key: "d2", term: "Annualized FTE", definition: "Full-time equivalent enrollment calculated across the academic year. Measures instructional load, not student count.", sourceSystem: "ctcLink", calcMethod: "Sum of student credit hours ÷ 45 (WA State standard divisor). Does NOT include WV-coded bypass students at 0 credit.", domain: "1 — Definitions & Standards", owner: "IR", lastReview: "2026-02-01" },
+    { key: "d3", term: "Q1 → Q2 Retention", definition: "Percentage of students who enrolled in Quarter 1 of a program and remained enrolled in Quarter 2 of the same program.", sourceSystem: "ctcLink", calcMethod: "Students enrolled Q2 ÷ Students enrolled Q1 (same cohort, same program academic plan code), measured at each quarter's census date.", domain: "1 — Definitions & Standards", owner: "IR", lastReview: "2026-02-01" },
+    { key: "d4", term: "Completion Rate", definition: "Percentage of a cohort who earned a credential (certificate, AAS, AAS-T) within 150% of normal program length.", sourceSystem: "ctcLink", calcMethod: "Students who earned credential within 150% time ÷ students in entry cohort. Reported on 3-year lag. WA SBCTC Student Achievement Initiative definition.", domain: "1 — Definitions & Standards", owner: "IR", lastReview: "2026-02-01" },
+    { key: "d5", term: "Census Date", definition: "The official date after which enrollment is 'locked' for reporting purposes. Students who add/drop after census date are not counted in that term's enrollment snapshot.", sourceSystem: "ctcLink", calcMethod: "Set by Registrar per SBCTC calendar. Typically 10th instructional day of each quarter. PENDING DIG FORMAL ADOPTION.", domain: "1 — Definitions & Standards", owner: "DIG (Pending)", lastReview: "OPEN" },
+    { key: "d6", term: "Student Learning Outcome (SLO)", definition: "A measurable statement of what a student will know, be able to do, or value as a result of completing a course or program.", sourceSystem: "Canvas", calcMethod: "Assessed via rubric in Canvas outcomes tool. Aggregated at course and program level. Standard rubric format PENDING DIG/Curriculum Committee adoption.", domain: "2 — Collection Integrity", owner: "Faculty + Curriculum Committee", lastReview: "OPEN" },
+    { key: "d7", term: "WV (Waiver) Code", definition: "ctcLink enrollment code for students who bypass a course via credential verification, receiving no credit but remaining visible in headcount data.", sourceSystem: "ctcLink", calcMethod: "Coded by Registrar upon faculty recommendation and Dean approval. Student appears in HC at 0 credit. Does NOT count toward FTE. Required for APR equity analysis.", domain: "1 — Definitions & Standards", owner: "Registrar + IR", lastReview: "2026-02-26" },
+    { key: "d8", term: "CPL (Prior Learning) Code", definition: "ctcLink enrollment code for students who receive credit for prior learning — industry certifications, military training, or portfolio assessment.", sourceSystem: "ctcLink", calcMethod: "Credit awarded based on faculty SLO evaluation (70% alignment threshold). Graded P or NP. Counts toward credential hours and appears in completion data.", domain: "1 — Definitions & Standards", owner: "Registrar + Faculty", lastReview: "2026-02-26" },
+    // Charter-derived governance terms
+    { key: "d-steward", term: "Data Steward (Term Owner)", definition: "The office or person accountable for a term's definition, source, and review cycle. Answers questions about the term and approves changes to it.", sourceSystem: "DIG", calcMethod: "Not calculated. Assigned by DIG for each Data Dictionary entry; reviewed annually alongside DIG membership.", domain: "6 — Knowledge Management", owner: "DIG (Pending)", lastReview: "OPEN" },
+    { key: "d-risk-advisory", term: "Risk Advisory", definition: "A DIG notice to the appropriate council that a data practice creates compliance, funding, or reporting risk. Forwarded with any opposing views recorded.", sourceSystem: "DIG", calcMethod: "Not calculated. Logged on the Governance Decisions board with its opposing views and the council it was sent to.", domain: "5 — Stakeholder Coordination", owner: "DIG Chair (IR)", lastReview: "OPEN" },
+    { key: "d-data-issue", term: "Data Issue", definition: "Any observed problem with how data is collected, entered, stored, calculated, or reported that could affect institutional planning or reporting.", sourceSystem: "DIG Issue Log", calcMethod: "Counted from the Data Issue Log. Proposed standard: acknowledged within 2 business days, resolved within 10.", domain: "2 — Collection Integrity", owner: "IR", lastReview: "OPEN" },
   ],
   work: [
-    { id: 1, name: "Achievement Standards Framework", domain: "1 — Definitions & Standards", description: "Establish agreed calculation methods for all student achievement metrics used in APR.", phase: "Phase 1", status: "Not Started", owner: "", notes: "" },
-    { id: 2, name: "Outcomes Audit Program", domain: "4 — Reporting & Analytics", description: "Annual audit of SLO data completeness and consistency across programs.", phase: "Phase 1", status: "Not Started", owner: "", notes: "" },
-    { id: 3, name: "Occupation Classification Policy", domain: "1 — Definitions & Standards", description: "Standardize CIP/SOC code assignments and review process for all programs.", phase: "Phase 1", status: "In Progress", owner: "Ren Tarvin", notes: "CIP 11.0901 confirmed for CNT. SOC alignment documented in APR narrative." },
-    { id: 4, name: "Feedback Data Integrity Plan", domain: "2 — Collection Integrity", description: "Ensure course evaluation data is collected consistently and coded correctly across all programs.", phase: "Phase 2", status: "Not Started", owner: "", notes: "" },
-    { id: 5, name: "Definitions Handbook", domain: "1 — Definitions & Standards", description: "Single published reference for all institutional data terms — faculty-facing, plain language.", phase: "Phase 2", status: "Not Started", owner: "", notes: "Draft structure exists in Data Dictionary tab. Needs DIG review before publication." },
-    { id: 6, name: "Calculation Guide", domain: "4 — Reporting & Analytics", description: "Step-by-step documentation of how each APR metric is calculated from source data.", phase: "Phase 2", status: "Not Started", owner: "", notes: "" },
-    { id: 7, name: "Data Quality Scorecard", domain: "7 — Advanced Integrity", description: "Program-level data quality score surfaced in Power BI — flags missing or suspect data before APR cycle opens.", phase: "Phase 3", status: "Not Started", owner: "", notes: "" },
-    { id: 8, name: "Anomaly Alert System", domain: "7 — Advanced Integrity", description: "Automated Power BI alerts for outlier patterns: achievement gaps, enrollment spikes, missing SLO entries.", phase: "Phase 3", status: "Not Started", owner: "", notes: "" },
+    { key: "w1", name: "Achievement Standards Framework", domain: "1 — Definitions & Standards", description: "Establish agreed calculation methods for all student achievement metrics used in APR.", phase: "Phase 1", status: "Not Started", owner: "", notes: "" },
+    { key: "w2", name: "Outcomes Audit Program", domain: "4 — Reporting & Analytics", description: "Annual audit of SLO data completeness and consistency across programs.", phase: "Phase 1", status: "Not Started", owner: "", notes: "" },
+    { key: "w3", name: "Occupation Classification Policy", domain: "1 — Definitions & Standards", description: "Standardize CIP/SOC code assignments and review process for all programs.", phase: "Phase 1", status: "In Progress", owner: "Ren Tarvin", notes: "CIP 11.0901 confirmed for CNT. SOC alignment documented in APR narrative." },
+    { key: "w4", name: "Feedback Data Integrity Plan", domain: "2 — Collection Integrity", description: "Ensure course evaluation data is collected consistently and coded correctly across all programs.", phase: "Phase 2", status: "Not Started", owner: "", notes: "" },
+    { key: "w5", name: "Definitions Handbook", domain: "6 — Knowledge Management", description: "Single published reference for all institutional data terms — faculty-facing, plain language.", phase: "Phase 2", status: "Not Started", owner: "", notes: "Draft structure exists in Data Dictionary tab. Needs DIG review before publication." },
+    { key: "w6", name: "Calculation Guide", domain: "4 — Reporting & Analytics", description: "Step-by-step documentation of how each APR metric is calculated from source data.", phase: "Phase 2", status: "Not Started", owner: "", notes: "" },
+    { key: "w7", name: "Data Quality Scorecard", domain: "7 — Advanced Integrity", description: "Program-level data quality score surfaced in Power BI — flags missing or suspect data before APR cycle opens.", phase: "Phase 3", status: "Not Started", owner: "", notes: "" },
+    { key: "w8", name: "Anomaly Alert System", domain: "7 — Advanced Integrity", description: "Automated Power BI alerts for outlier patterns: achievement gaps, enrollment spikes, missing SLO entries.", phase: "Phase 3", status: "Not Started", owner: "", notes: "" },
+    // Charter-derived workstreams
+    { key: "charter-action-plan", name: "Annual DIG Action Plan", domain: "5 — Stakeholder Coordination", description: "Charter goal: outline an action plan each year. Sets the year's priorities, owners, and the workstreams on this board.", phase: "Phase 1", status: "Not Started", owner: "DIG Chair (IR)", notes: "" },
+    { key: "charter-stakeholder-assessment", name: "Campus Data Needs Assessment", domain: "5 — Stakeholder Coordination", description: "Charter goal: identify data issues and concerns by assessing faculty, staff, and administrators. Results feed procedural and policy recommendations.", phase: "Phase 1", status: "Not Started", owner: "", notes: "" },
+    { key: "charter-data-summit", name: "Data Summit", domain: "5 — Stakeholder Coordination", description: "Charter goal: coordinate data summits to share definitions, decisions, and issue trends with the wider campus.", phase: "Phase 2", status: "Not Started", owner: "", notes: "" },
+    { key: "charter-data-literacy", name: "Data Literacy Training", domain: "6 — Knowledge Management", description: "Charter vision: build data literacy across the college through training, workshops, and communication.", phase: "Phase 2", status: "Not Started", owner: "", notes: "" },
+    { key: "charter-privacy-storage", name: "Data Storage & Privacy Standards", domain: "3 — Access & Security", description: "Charter goal: review, document, and recommend business process standards for data storage, privacy, and reporting.", phase: "Phase 2", status: "Not Started", owner: "", notes: "" },
+    { key: "charter-validation-qa", name: "Data Validation & QA Log", domain: "2 — Collection Integrity", description: "Accreditation evidence: document data validation efforts and quality assurance steps for each KPI.", phase: "Phase 2", status: "Not Started", owner: "", notes: "" },
+    { key: "charter-comms-plan", name: "Data Change Communication Plan", domain: "6 — Knowledge Management", description: "Accreditation evidence: how stakeholders learn about key data changes, including departments not present at meetings.", phase: "Phase 2", status: "Not Started", owner: "", notes: "" },
   ],
   dec: [
-    { id: 1, decision: "Census Date Definition", detail: "When is enrollment 'locked' for a cohort? Which census date applies to retention and completion calculations?", owner: "IR + DIG", priority: "🔴 Blocking", status: "Open", notes: "" },
-    { id: 2, decision: "Cohort Definition", detail: "Which students count in retention and completion calculations? How are late-adds, withdrawals, and bypass students handled?", owner: "IR + Academic Affairs", priority: "🔴 Blocking", status: "Open", notes: "" },
-    { id: 3, decision: "Suppression Rules", detail: "Minimum cell sizes for demographic disaggregation in APR reporting — below what threshold is data suppressed for FERPA compliance?", owner: "DIG + Legal", priority: "🔴 Blocking", status: "Open", notes: "" },
-    { id: 4, decision: "Finance Data MOU", detail: "What access restrictions apply to budget and cost-per-FTE data? Does including it in Power BI require a formal data sharing agreement with Finance?", owner: "Finance + IT + DIG", priority: "🟡 Priority", status: "Open", notes: "" },
-    { id: 5, decision: "Canvas SLO Standardization", detail: "Curriculum Committee or faculty leads must agree on a standard SLO rubric format in Canvas before any SLO data pipeline can be built.", owner: "Curriculum Committee", priority: "🟡 Priority", status: "Open", notes: "" },
-    { id: 6, decision: "Power BI Licensing Confirmation", detail: "IT to confirm whether existing M365 agreement includes Power BI Pro and how many seats are available.", owner: "IT", priority: "🟡 Priority", status: "Open", notes: "" },
-    { id: 7, decision: "IR Capacity Assessment", detail: "Confirm whether IR has staff bandwidth to lead the data pipeline build, or whether a phased approach or external consultant is needed.", owner: "IR + VPI", priority: "🟡 Priority", status: "Open", notes: "" },
-    { id: 8, decision: "Accessibility Review Standard", detail: "Confirm Power BI dashboard meets WCAG 2.1 AA — color-blind users, screen reader compatibility. Must be built into design phase, not added after.", owner: "IT + DIG", priority: "🟢 Design Phase", status: "Open", notes: "" },
+    { key: "c1", decision: "Census Date Definition", detail: "When is enrollment 'locked' for a cohort? Which census date applies to retention and completion calculations?", owner: "IR + DIG", priority: "🔴 Blocking", status: "Open", notes: "", dissent: "" },
+    { key: "c2", decision: "Cohort Definition", detail: "Which students count in retention and completion calculations? How are late-adds, withdrawals, and bypass students handled?", owner: "IR + Academic Affairs", priority: "🔴 Blocking", status: "Open", notes: "", dissent: "" },
+    { key: "c3", decision: "Suppression Rules", detail: "Minimum cell sizes for demographic disaggregation in APR reporting — below what threshold is data suppressed for FERPA compliance?", owner: "DIG + Legal", priority: "🔴 Blocking", status: "Open", notes: "", dissent: "" },
+    { key: "c4", decision: "Finance Data MOU", detail: "What access restrictions apply to budget and cost-per-FTE data? Does including it in Power BI require a formal data sharing agreement with Finance?", owner: "Finance + IT + DIG", priority: "🟡 Priority", status: "Open", notes: "", dissent: "" },
+    { key: "c5", decision: "Canvas SLO Standardization", detail: "Curriculum Committee or faculty leads must agree on a standard SLO rubric format in Canvas before any SLO data pipeline can be built.", owner: "Curriculum Committee", priority: "🟡 Priority", status: "Open", notes: "", dissent: "" },
+    { key: "c6", decision: "Power BI Licensing Confirmation", detail: "IT to confirm whether existing M365 agreement includes Power BI Pro and how many seats are available.", owner: "IT", priority: "🟡 Priority", status: "Open", notes: "", dissent: "" },
+    { key: "c7", decision: "IR Capacity Assessment", detail: "Confirm whether IR has staff bandwidth to lead the data pipeline build, or whether a phased approach or external consultant is needed.", owner: "IR + VPI", priority: "🟡 Priority", status: "Open", notes: "", dissent: "" },
+    { key: "c8", decision: "Accessibility Review Standard", detail: "Confirm Power BI dashboard meets WCAG 2.1 AA — color-blind users, screen reader compatibility. Must be built into design phase, not added after.", owner: "IT + DIG", priority: "🟢 Design Phase", status: "Open", notes: "", dissent: "" },
+    // Charter-derived decisions
+    { key: "charter-sla", decision: "Data Issue Log Service Standard", detail: "Does IR agree to acknowledge issues within 2 business days and resolve within 10? Needed before the Issue Log opens to faculty.", owner: "IR", priority: "🔴 Blocking", status: "Open", notes: "", dissent: "" },
+    { key: "charter-system-of-record", decision: "Official Record for DIG Evidence", detail: "Where agendas, minutes, decision records, and the issue log officially live (proposed: RTC Microsoft 365 SharePoint lists behind this site), and who can see sensitive materials.", owner: "IR + CTS + DIG", priority: "🟡 Priority", status: "Open", notes: "", dissent: "" },
+    { key: "charter-routing", decision: "Recommendation Routing", detail: "Which council receives each type of recommendation and risk advisory (Resource & Planning Council, Cabinet, Administrative groups), and how opposing views are attached.", owner: "DIG Chair", priority: "🟡 Priority", status: "Open", notes: "", dissent: "" },
+    { key: "charter-membership", decision: "Annual Membership Review", detail: "Confirm representation from each office named in the charter, apply the 50% attendance rule, and decide how topics reach departments not present.", owner: "DIG Chair", priority: "🟡 Priority", status: "Open", notes: "", dissent: "" },
   ],
   issues: []
 };
+// Keys that existed before seeds carried keys (v1 local data used ids 1–8 for these).
+const LEGACY_KEYS = { dict: 'd', work: 'w', dec: 'c' };
+
+// ── HELPERS ────────────────────────────────────────────────────────────────────
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+const today = () => new Date().toISOString().split('T')[0];
+function businessDaysSince(dateStr) {
+  if (!dateStr) return 0;
+  const start = new Date(dateStr + 'T00:00:00'), end = new Date();
+  let n = 0;
+  for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+    const day = d.getDay(); if (day !== 0 && day !== 6) n++;
+  }
+  return Math.max(0, n - 1);
+}
+const sameId = (a, b) => String(a) === String(b);
+
+// ── STORAGE: LOCAL ADAPTER ─────────────────────────────────────────────────────
+const LOCAL_KEY = 'dig_pilot_v1';
+const LocalStore = {
+  mode: 'local',
+  data: null,
+  async loadAll() {
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}') || {}; } catch (e) { saved = {}; }
+    const isLegacy = saved.dict && !saved.seedApplied;
+    const applied = new Set(saved.seedApplied || []);
+    if (isLegacy) Object.entries(LEGACY_KEYS).forEach(([t, p]) => { for (let i = 1; i <= 8; i++) applied.add(p + i); });
+    const data = {};
+    for (const type of ['dict', 'work', 'dec', 'issues']) {
+      data[type] = Array.isArray(saved[type]) ? saved[type] : [];
+      if (isLegacy && LEGACY_KEYS[type]) data[type].forEach(x => { if (!x.key && x.id <= 8) x.key = LEGACY_KEYS[type] + x.id; });
+      for (const seed of SEED[type]) {
+        if (applied.has(seed.key)) continue;
+        data[type].push({ ...seed, id: nextId(data[type]) });
+        applied.add(seed.key);
+      }
+    }
+    this.data = data; this.applied = [...applied];
+    this.persist();
+    return data;
+  },
+  persist() {
+    try { localStorage.setItem(LOCAL_KEY, JSON.stringify({ ...this.data, seedApplied: this.applied })); } catch (e) { /* storage blocked */ }
+  },
+  async create(type, item) { const rec = { id: nextId(this.data[type]), ...item }; this.data[type].push(rec); this.persist(); return rec; },
+  async update(type, id, item) { Object.assign(this.data[type].find(x => sameId(x.id, id)), item); this.persist(); },
+  async remove(type, id) { this.data[type] = this.data[type].filter(x => !sameId(x.id, id)); this.persist(); }
+};
+function nextId(arr) { return arr.length ? Math.max(...arr.map(x => Number(x.id) || 0)) + 1 : 1; }
+
+// ── STORAGE: MICROSOFT 365 (SharePoint lists via Graph) ADAPTER ───────────────
+// App field → SharePoint column internal name. Title is the built-in column.
+const FIELD_MAP = {
+  dict:   { term: 'Title', definition: 'Definition', sourceSystem: 'SourceSystem', calcMethod: 'CalcMethod', domain: 'Domain', owner: 'OwnerName', lastReview: 'LastReview', key: 'SeedKey' },
+  work:   { name: 'Title', description: 'WorkDescription', domain: 'Domain', phase: 'Phase', status: 'Status', owner: 'OwnerName', notes: 'Notes', key: 'SeedKey' },
+  dec:    { decision: 'Title', detail: 'Detail', owner: 'OwnerName', priority: 'Priority', status: 'Status', notes: 'Notes', dissent: 'Dissent', resolvedDate: 'ResolvedDate', key: 'SeedKey' },
+  issues: { title: 'Title', submitter: 'Submitter', program: 'Program', metric: 'Metric', date: 'DateObserved', description: 'IssueDescription', status: 'Status', irNotes: 'IRNotes', dateSubmitted: 'DateSubmitted', ackDate: 'AckDate', resolvedDate: 'ResolvedDate' }
+};
+const m365Configured = () => !!(M365_CONFIG.tenantId && M365_CONFIG.clientId && M365_CONFIG.siteHostname);
+
+const M365Store = {
+  mode: 'm365',
+  app: null, account: null, siteId: null,
+  async init() {
+    if (typeof msal === 'undefined') throw new Error('Microsoft sign-in library failed to load.');
+    this.app = new msal.PublicClientApplication({
+      auth: { clientId: M365_CONFIG.clientId, authority: `https://login.microsoftonline.com/${M365_CONFIG.tenantId}`, redirectUri: location.origin + location.pathname },
+      cache: { cacheLocation: 'localStorage' }
+    });
+    await this.app.initialize();
+    const res = await this.app.handleRedirectPromise();
+    this.account = (res && res.account) || this.app.getAllAccounts()[0] || null;
+  },
+  async signIn() {
+    const res = await this.app.loginPopup({ scopes: GRAPH_SCOPES });
+    this.account = res.account;
+  },
+  async signOut() { await this.app.logoutPopup({ account: this.account }); this.account = null; },
+  async token() {
+    try {
+      return (await this.app.acquireTokenSilent({ scopes: GRAPH_SCOPES, account: this.account })).accessToken;
+    } catch (e) {
+      return (await this.app.acquireTokenPopup({ scopes: GRAPH_SCOPES, account: this.account })).accessToken;
+    }
+  },
+  async graph(path, opts = {}) {
+    const url = path.startsWith('https://') ? path : 'https://graph.microsoft.com/v1.0' + path;
+    const res = await fetch(url, { ...opts, headers: { Authorization: 'Bearer ' + await this.token(), 'Content-Type': 'application/json', ...(opts.headers || {}) } });
+    if (!res.ok) {
+      let msg = res.status + ' ' + res.statusText;
+      try { const j = await res.json(); if (j.error && j.error.message) msg += ' — ' + j.error.message; } catch (e) {}
+      const err = new Error(msg); err.status = res.status; throw err;
+    }
+    return res.status === 204 ? null : res.json();
+  },
+  listPath(type) { return `/sites/${this.siteId}/lists/${encodeURIComponent(M365_CONFIG.lists[type])}`; },
+  toFields(type, item) {
+    const f = {};
+    for (const [k, col] of Object.entries(FIELD_MAP[type])) if (item[k] !== undefined) f[col] = item[k] ?? '';
+    if (type === 'issues' && item.description !== undefined) f.Title = (item.metric || item.description || 'Data issue').slice(0, 250);
+    return f;
+  },
+  fromItem(type, it) {
+    const rec = { id: it.id };
+    for (const [k, col] of Object.entries(FIELD_MAP[type])) rec[k] = it.fields[col] ?? '';
+    return rec;
+  },
+  async loadAll() {
+    if (!this.siteId) {
+      const p = M365_CONFIG.sitePath ? `/sites/${M365_CONFIG.siteHostname}:${M365_CONFIG.sitePath}` : `/sites/${M365_CONFIG.siteHostname}`;
+      this.siteId = (await this.graph(p)).id;
+    }
+    const data = {};
+    for (const type of ['dict', 'work', 'dec', 'issues']) {
+      const out = [];
+      let next = this.listPath(type) + '/items?expand=fields&$top=500';
+      try {
+        while (next) {
+          const page = await this.graph(next);
+          page.value.forEach(it => out.push(this.fromItem(type, it)));
+          next = page['@odata.nextLink'] || null;
+        }
+      } catch (e) {
+        if (e.status === 404) throw new Error(`SharePoint list "${M365_CONFIG.lists[type]}" was not found. Run the setup script first.`);
+        throw e;
+      }
+      data[type] = out;
+    }
+    return data;
+  },
+  async create(type, item) {
+    const it = await this.graph(this.listPath(type) + '/items', { method: 'POST', body: JSON.stringify({ fields: this.toFields(type, item) }) });
+    return this.fromItem(type, it);
+  },
+  async update(type, id, item) {
+    await this.graph(this.listPath(type) + `/items/${id}/fields`, { method: 'PATCH', body: JSON.stringify(this.toFields(type, item)) });
+  },
+  async remove(type, id) {
+    await this.graph(this.listPath(type) + `/items/${id}`, { method: 'DELETE' });
+  }
+};
 
 // ── STATE ──────────────────────────────────────────────────────────────────────
-let state = {};
-function load() {
-  const saved = localStorage.getItem('dig_pilot_v1');
-  if (saved) { try { state = JSON.parse(saved); } catch(e) { state = {}; } }
-  if (!state.dict)   state.dict   = [...SEED.dict];
-  if (!state.work)   state.work   = [...SEED.work];
-  if (!state.dec)    state.dec    = [...SEED.dec];
-  if (!state.issues) state.issues = [...SEED.issues];
+let Store = LocalStore;
+let state = { dict: [], work: [], dec: [], issues: [] };
+let busy = false;
+
+async function reload() {
+  state = await Store.loadAll();
+  renderAll();
 }
-function save() { localStorage.setItem('dig_pilot_v1', JSON.stringify(state)); updateCounts(); }
-function nextId(arr) { return arr.length ? Math.max(...arr.map(x => x.id)) + 1 : 1; }
+async function act(fn) {
+  if (busy) return;
+  busy = true;
+  try { await fn(); }
+  catch (e) { console.error(e); alert('Could not save: ' + e.message); }
+  finally { busy = false; }
+}
+async function createItem(type, item) { const rec = await Store.create(type, item); if (Store !== LocalStore) state[type].push(rec); }
+async function updateItem(type, id, item) { await Store.update(type, id, item); if (Store !== LocalStore) Object.assign(state[type].find(x => sameId(x.id, id)), item); }
+async function removeItem(type, id) { await Store.remove(type, id); if (Store !== LocalStore) state[type] = state[type].filter(x => !sameId(x.id, id)); else state = Store.data; }
+
+// ── MODE BANNER + AUTH UI ──────────────────────────────────────────────────────
+function setBanner(kind, html) {
+  const b = document.getElementById('mode-banner');
+  b.className = 'mode-banner ' + kind;
+  b.innerHTML = html;
+}
+function renderAuth() {
+  const a = document.getElementById('auth-area');
+  if (Store !== M365Store) { a.innerHTML = ''; return; }
+  a.innerHTML = M365Store.account
+    ? `<span class="header-user">${esc(M365Store.account.name || M365Store.account.username)}</span> <button class="header-btn" onclick="doSignOut()">Sign out</button>`
+    : `<button class="header-btn" onclick="doSignIn()">Sign in with RTC account</button>`;
+}
+async function doSignIn() {
+  try { await M365Store.signIn(); renderAuth(); await loadShared(); }
+  catch (e) { setBanner('error', 'Sign-in failed: ' + esc(e.message)); }
+}
+async function doSignOut() {
+  try { await M365Store.signOut(); } catch (e) {}
+  state = { dict: [], work: [], dec: [], issues: [] };
+  renderAuth(); renderAll();
+  setBanner('local', 'Signed out. Sign in with your RTC Microsoft account to view and edit DIG records.');
+}
+async function loadShared() {
+  setBanner('shared', 'Loading DIG records from SharePoint…');
+  try {
+    await reload();
+    const empty = ['dict', 'work', 'dec'].filter(t => !state[t].length);
+    setBanner('shared', `<span>🔗 <strong>Shared mode.</strong> Records are stored in RTC's Microsoft 365 (SharePoint). Everyone signed in sees the same data.</span>` +
+      (empty.length ? ` <button class="btn btn-secondary btn-sm" onclick="loadStarterData()">Load starter data into ${empty.length} empty list${empty.length > 1 ? 's' : ''}</button>` : ''));
+  } catch (e) {
+    setBanner('error', '⚠️ Could not load SharePoint data: ' + esc(e.message));
+  }
+}
+async function loadStarterData() {
+  await act(async () => {
+    for (const type of ['dict', 'work', 'dec']) {
+      if (state[type].length) continue;
+      for (const seed of SEED[type]) await createItem(type, { ...seed });
+    }
+  });
+  await loadShared();
+}
 
 // ── TABS ───────────────────────────────────────────────────────────────────────
-function switchTab(tab) {
+function switchTab(btn, tab) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
-  event.currentTarget.classList.add('active');
-  if (tab === 'dict')   renderDict();
-  if (tab === 'work')   renderWork();
-  if (tab === 'dec')    renderDec();
-  if (tab === 'issues') renderIssues();
+  btn.classList.add('active');
+  renderTab(tab);
 }
+function goTab(tab) {
+  const btn = [...document.querySelectorAll('.tab-btn')].find(b => (b.getAttribute('onclick') || '').includes(`'${tab}'`));
+  if (btn) switchTab(btn, tab);
+  window.scrollTo(0, 0);
+}
+function renderTab(tab) {
+  if (tab === 'dict')    renderDict();
+  if (tab === 'work')    renderWork();
+  if (tab === 'dec')     renderDec();
+  if (tab === 'issues')  renderIssues();
+  if (tab === 'charter') renderCharter();
+}
+function renderAll() { updateCounts(); renderDict(); renderWork(); renderDec(); renderIssues(); renderCharter(); }
 function updateCounts() {
   document.getElementById('count-dict').textContent   = state.dict.length;
   document.getElementById('count-work').textContent   = state.work.length;
   document.getElementById('count-dec').textContent    = state.dec.filter(d => d.status !== 'Resolved').length;
   document.getElementById('count-issues').textContent = state.issues.filter(i => i.status !== 'Resolved').length;
+  document.getElementById('count-charter').textContent = evidenceRows().filter(r => r.status === 'Gap').length + ' gaps';
 }
 
 // ── BADGES ────────────────────────────────────────────────────────────────────
 function statusBadge(s) {
-  const m = { 'Not Started':'gray','In Progress':'blue','Blocked':'red','Complete':'green','Open':'red','In Review':'amber','Under Review':'amber','Resolved':'green' };
-  return `<span class="badge badge-${m[s]||'gray'}">${s}</span>`;
+  const m = { 'Not Started':'gray','In Progress':'blue','Blocked':'red','Complete':'green','Open':'red','In Review':'amber','Under Review':'amber','Resolved':'green','Captured':'green','Started':'amber','Gap':'red' };
+  return `<span class="badge badge-${m[s]||'gray'}">${esc(s)}</span>`;
 }
 function phaseBadge(p) {
   const m = { 'Phase 1':'red','Phase 2':'amber','Phase 3':'green' };
-  return `<span class="badge badge-${m[p]||'gray'}">${p}</span>`;
+  return `<span class="badge badge-${m[p]||'gray'}">${esc(p)}</span>`;
 }
 function priorityBadge(p) {
+  p = p || '';
   if (p.includes('🔴')) return `<span class="badge badge-red">🔴 Blocking</span>`;
   if (p.includes('🟡')) return `<span class="badge badge-amber">🟡 Priority</span>`;
   return `<span class="badge badge-green">🟢 Design</span>`;
 }
+const domainNum = d => esc(String(d || '').split('—')[0].trim());
+const domainOptions = sel => DOMAINS.map(d => `<option ${sel === d ? 'selected' : ''}>${esc(d)}</option>`).join('');
 
 // ── DICTIONARY ────────────────────────────────────────────────────────────────
 function renderDict() {
   const q = (document.getElementById('dict-search').value||'').toLowerCase();
   const fd = document.getElementById('dict-filter-domain').value;
   let rows = state.dict.filter(d =>
-    (!q || [d.term,d.definition,d.owner,d.sourceSystem].some(f => f.toLowerCase().includes(q))) &&
+    (!q || [d.term,d.definition,d.owner,d.sourceSystem].some(f => (f||'').toLowerCase().includes(q))) &&
     (!fd || d.domain === fd)
   );
   const body = document.getElementById('dict-body');
   if (!rows.length) { body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--gray)">No terms found.</td></tr>`; return; }
   body.innerHTML = rows.map(d => `
     <tr>
-      <td><strong>${d.term}</strong></td>
-      <td style="max-width:260px">${d.definition}</td>
-      <td class="mono">${d.sourceSystem}</td>
-      <td style="max-width:200px;font-size:12px;color:var(--text-sm)">${d.calcMethod}</td>
-      <td><span class="badge badge-blue" style="font-size:10px">${d.domain.split('—')[0].trim()}</span></td>
-      <td class="meta">${d.owner}</td>
-      <td class="meta">${d.lastReview === 'OPEN' ? '<span class="badge badge-red">OPEN</span>' : d.lastReview}</td>
-      <td>
-        <button class="btn btn-secondary btn-sm" onclick="editEntry('dict',${d.id})">Edit</button>
-        <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="deleteEntry('dict',${d.id})">×</button>
+      <td><strong>${esc(d.term)}</strong></td>
+      <td style="max-width:260px">${esc(d.definition)}</td>
+      <td class="mono">${esc(d.sourceSystem)}</td>
+      <td style="max-width:200px;font-size:12px;color:var(--text-sm)">${esc(d.calcMethod)}</td>
+      <td><span class="badge badge-blue" style="font-size:10px" title="${esc(d.domain)}">${domainNum(d.domain)}</span></td>
+      <td class="meta">${esc(d.owner)}</td>
+      <td class="meta">${d.lastReview === 'OPEN' ? '<span class="badge badge-red">OPEN</span>' : esc(d.lastReview)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-secondary btn-sm" onclick="editEntry('dict','${esc(d.id)}')">Edit</button>
+        <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="deleteEntry('dict','${esc(d.id)}')">×</button>
       </td>
     </tr>`).join('');
 }
@@ -659,23 +980,17 @@ function renderWork() {
   const fp = document.getElementById('work-filter-phase').value;
   const fs = document.getElementById('work-filter-status').value;
   let items = state.work.filter(w => (!fp || w.phase === fp) && (!fs || w.status === fs));
+  const usedDomains = new Set(state.work.map(w => w.domain)).size;
+  document.getElementById('work-subtitle').textContent =
+    `${state.work.length} named workstreams across ${usedDomains} of the ${DOMAINS.length} governance domains. Phase 1 unblocks the APR dashboard build.`;
 
-  // Summary bar
   const counts = WS_STATUSES.map(s => state.work.filter(w => w.status === s).length);
   document.getElementById('work-summary').innerHTML = [
-    ['Not Started', counts[0], ''],
-    ['In Progress', counts[1], ''],
-    ['Blocked', counts[2], 'red'],
-    ['Complete', counts[3], 'green']
+    ['Not Started', counts[0], ''], ['In Progress', counts[1], ''], ['Blocked', counts[2], 'red'], ['Complete', counts[3], 'green']
   ].map(([label, n, cls]) => `
-    <div class="summary-card ${cls}">
-      <div class="summary-num">${n}</div>
-      <div class="summary-label">${label}</div>
-    </div>`).join('');
+    <div class="summary-card ${cls}"><div class="summary-num">${n}</div><div class="summary-label">${label}</div></div>`).join('');
 
-  // Kanban
-  const kanban = document.getElementById('work-kanban');
-  kanban.innerHTML = WS_STATUSES.map(status => {
+  document.getElementById('work-kanban').innerHTML = WS_STATUSES.map(status => {
     const cards = items.filter(w => w.status === status);
     return `
       <div class="kanban-col">
@@ -684,12 +999,12 @@ function renderWork() {
           <span class="tab-count" style="background:var(--border);color:var(--gray)">${cards.length}</span>
         </div>
         ${cards.map(w => `
-          <div class="kanban-card phase-${w.phase.split(' ')[1]}" onclick="editEntry('work',${w.id})">
-            <div class="kanban-card-title">${w.name}</div>
-            <div class="kanban-card-domain">${w.domain.split('—')[0].trim()}</div>
+          <div class="kanban-card phase-${esc(String(w.phase||'').split(' ')[1])}" onclick="editEntry('work','${esc(w.id)}')">
+            <div class="kanban-card-title">${esc(w.name)}</div>
+            <div class="kanban-card-domain">${esc(w.domain)}</div>
             <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
               ${phaseBadge(w.phase)}
-              ${w.owner ? `<span class="badge badge-teal" style="font-size:10px">${w.owner}</span>` : ''}
+              ${w.owner ? `<span class="badge badge-teal" style="font-size:10px">${esc(w.owner)}</span>` : ''}
             </div>
           </div>`).join('')}
       </div>`;
@@ -700,42 +1015,46 @@ function renderWork() {
 function renderDec() {
   const fp = document.getElementById('dec-filter-priority').value;
   const fs = document.getElementById('dec-filter-status').value;
-  let items = state.dec.filter(d =>
-    (!fp || d.priority === fp) &&
-    (!fs || d.status === fs)
-  );
+  let items = state.dec.filter(d => (!fp || d.priority === fp) && (!fs || d.status === fs));
   const open = state.dec.filter(d => d.status === 'Open').length;
+  const blocking = state.dec.filter(d => d.status !== 'Resolved' && (d.priority||'').includes('🔴')).length;
   const review = state.dec.filter(d => d.status === 'In Review').length;
   const resolved = state.dec.filter(d => d.status === 'Resolved').length;
+  document.getElementById('dec-subtitle').textContent =
+    `${open + review} open decisions, ${blocking} of them blocking the APR dashboard build or Issue Log launch. Resolving these in DIG gives them institutional authority.`;
   document.getElementById('dec-summary').innerHTML = `
-    <div class="summary-card red"><div class="summary-num">${open}</div><div class="summary-label">Open / Blocking</div></div>
+    <div class="summary-card red"><div class="summary-num">${blocking}</div><div class="summary-label">Blocking (unresolved)</div></div>
     <div class="summary-card amber"><div class="summary-num">${review}</div><div class="summary-label">In Review</div></div>
     <div class="summary-card green"><div class="summary-num">${resolved}</div><div class="summary-label">Resolved</div></div>
     <div class="summary-card"><div class="summary-num">${state.dec.length}</div><div class="summary-label">Total Decisions</div></div>`;
   const grid = document.getElementById('dec-grid');
   if (!items.length) { grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--gray)">No items match the current filter.</div>`; return; }
-  const priorityClass = p => p.includes('🔴') ? 'priority-blocking' : p.includes('🟡') ? 'priority-high' : 'priority-design';
+  const priorityClass = p => (p||'').includes('🔴') ? 'priority-blocking' : (p||'').includes('🟡') ? 'priority-high' : 'priority-design';
   grid.innerHTML = items.map(d => `
     <div class="card ${priorityClass(d.priority)}">
       <div class="card-top">
-        <div class="card-title">${d.decision}</div>
+        <div class="card-title">${esc(d.decision)}</div>
         ${priorityBadge(d.priority)}
       </div>
-      <div class="card-body">${d.detail}</div>
+      <div class="card-body">${esc(d.detail)}</div>
       <div class="card-meta">
         ${statusBadge(d.status)}
-        <span>Owner: <strong>${d.owner}</strong></span>
+        <span>Owner: <strong>${esc(d.owner)}</strong></span>
+        ${d.resolvedDate ? `<span>Resolved ${esc(d.resolvedDate)}</span>` : ''}
       </div>
-      ${d.notes ? `<div style="margin-top:10px;font-size:12px;color:var(--text-sm);background:var(--bg);padding:8px 10px;border-radius:4px">📝 ${d.notes}</div>` : ''}
+      ${d.notes ? `<div style="margin-top:10px;font-size:12px;color:var(--text-sm);background:var(--bg);padding:8px 10px;border-radius:4px">📝 <strong>Resolution / rationale:</strong> ${esc(d.notes)}</div>` : ''}
+      ${d.dissent ? `<div style="margin-top:6px;font-size:12px;color:var(--amber);background:var(--amber-lt);padding:8px 10px;border-radius:4px">⚖️ <strong>Opposing views:</strong> ${esc(d.dissent)}</div>` : ''}
       <div class="card-actions">
-        <button class="btn btn-secondary btn-sm" onclick="editEntry('dec',${d.id})">Update</button>
-        ${d.status !== 'Resolved' ? `<button class="btn btn-primary btn-sm" onclick="resolveDecision(${d.id})">Mark Resolved</button>` : ''}
+        <button class="btn btn-secondary btn-sm" onclick="editEntry('dec','${esc(d.id)}')">Update</button>
+        ${d.status !== 'Resolved' ? `<button class="btn btn-primary btn-sm" onclick="resolveDecision('${esc(d.id)}')">Mark Resolved</button>` : ''}
       </div>
     </div>`).join('');
 }
 function resolveDecision(id) {
-  const d = state.dec.find(x => x.id === id);
-  if (d) { d.status = 'Resolved'; save(); renderDec(); }
+  const d = state.dec.find(x => sameId(x.id, id));
+  if (!d) return;
+  if (!d.notes && !confirm('No resolution or rationale is recorded yet. The charter asks DIG to keep the rationale for each decision. Mark resolved anyway?')) return;
+  act(async () => { await updateItem('dec', id, { status: 'Resolved', resolvedDate: today() }); renderAll(); });
 }
 
 // ── ISSUES ────────────────────────────────────────────────────────────────────
@@ -746,10 +1065,18 @@ function submitIssue() {
   const date    = document.getElementById('iss-date').value;
   const desc    = document.getElementById('iss-desc').value.trim();
   if (!name || !desc) { alert('Please fill in your name and a description of the issue.'); return; }
-  state.issues.unshift({ id: nextId(state.issues), submitter: name, program, metric, date: date || new Date().toISOString().split('T')[0], description: desc, status: 'Open', irNotes: '', dateSubmitted: new Date().toISOString().split('T')[0] });
-  save();
-  ['iss-name','iss-program','iss-metric','iss-date','iss-desc'].forEach(id => document.getElementById(id).value = '');
-  renderIssues();
+  act(async () => {
+    await createItem('issues', { submitter: name, program, metric, date: date || today(), description: desc, status: 'Open', irNotes: '', dateSubmitted: today(), ackDate: '', resolvedDate: '' });
+    ['iss-name','iss-program','iss-metric','iss-date','iss-desc'].forEach(id => document.getElementById(id).value = '');
+    renderAll();
+  });
+}
+function slaBadge(i) {
+  if (i.status === 'Resolved') return '';
+  const age = businessDaysSince(i.dateSubmitted);
+  if (i.status === 'Open' && age > 2)  return `<br><span class="badge badge-red" style="margin-top:4px">Ack overdue · ${age}d</span>`;
+  if (age > 10)                        return `<br><span class="badge badge-red" style="margin-top:4px">Past 10-day target · ${age}d</span>`;
+  return `<br><span class="badge badge-gray" style="margin-top:4px">${age} business day${age === 1 ? '' : 's'}</span>`;
 }
 function renderIssues() {
   const q  = (document.getElementById('iss-search').value||'').toLowerCase();
@@ -757,26 +1084,86 @@ function renderIssues() {
   let rows = state.issues.filter(i =>
     (!q  || [i.submitter,i.program,i.metric,i.description].some(f => (f||'').toLowerCase().includes(q))) &&
     (!fs || i.status === fs)
-  );
+  ).sort((a, b) => String(b.dateSubmitted).localeCompare(String(a.dateSubmitted)));
   const wrap = document.getElementById('iss-table-wrap');
   if (!rows.length) {
     wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-label">No issues logged yet.</div><div class="empty-sub">Submit one above or adjust your filter.</div></div>`;
     return;
   }
-  wrap.innerHTML = `<table class="data-table">
+  wrap.innerHTML = `<div class="table-scroll"><table class="data-table">
     <thead><tr><th>Submitted</th><th>Submitter</th><th>Program</th><th>Metric</th><th>Description</th><th>Status</th><th>IR Notes</th><th>Actions</th></tr></thead>
     <tbody>${rows.map(i => `
       <tr>
-        <td class="meta">${i.dateSubmitted}</td>
-        <td><strong>${i.submitter}</strong></td>
-        <td class="meta">${i.program||'—'}</td>
-        <td class="mono">${i.metric||'—'}</td>
-        <td style="max-width:220px;font-size:12px">${i.description}</td>
-        <td>${statusBadge(i.status)}</td>
-        <td style="max-width:160px;font-size:12px;color:var(--text-sm)">${i.irNotes||'—'}</td>
-        <td><button class="btn btn-secondary btn-sm" onclick="editEntry('issues',${i.id})">Update</button></td>
+        <td class="meta">${esc(i.dateSubmitted)}</td>
+        <td><strong>${esc(i.submitter)}</strong></td>
+        <td class="meta">${esc(i.program)||'—'}</td>
+        <td class="mono">${esc(i.metric)||'—'}</td>
+        <td style="max-width:220px;font-size:12px">${esc(i.description)}</td>
+        <td>${statusBadge(i.status)}${slaBadge(i)}</td>
+        <td style="max-width:160px;font-size:12px;color:var(--text-sm)">${esc(i.irNotes)||'—'}</td>
+        <td><button class="btn btn-secondary btn-sm" onclick="editEntry('issues','${esc(i.id)}')">Update</button></td>
+      </tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+// ── CHARTER & EVIDENCE ────────────────────────────────────────────────────────
+const wsByKey = key => state.work.find(w => w.key === key);
+function wsEvidence(key) {
+  const w = wsByKey(key);
+  if (!w) return { status: 'Gap', note: 'Workstream not on the board' };
+  const status = w.status === 'Complete' ? 'Captured' : (w.status === 'In Progress' || w.status === 'Blocked') ? 'Started' : 'Gap';
+  return { status, note: `${w.name}: ${w.status}${w.owner ? ' · ' + w.owner : ' · no owner yet'}` };
+}
+function goalRows() {
+  const openTerms = state.dict.filter(d => d.lastReview === 'OPEN').length;
+  const fullTerms = state.dict.filter(d => d.sourceSystem && d.calcMethod && d.owner && d.lastReview !== 'OPEN').length;
+  const resolved = state.dec.filter(d => d.status === 'Resolved').length;
+  const doneWs = state.work.filter(w => w.status === 'Complete').length;
+  return [
+    { goal: 'Outline an action plan on a yearly basis', tab: 'work', ...wsEvidence('charter-action-plan') },
+    { goal: 'Identify data issues through assessment of faculty, staff, and administrators', tab: 'issues',
+      status: state.issues.length ? 'Started' : wsEvidence('charter-stakeholder-assessment').status,
+      note: `${state.issues.length} issue${state.issues.length === 1 ? '' : 's'} logged · ${wsEvidence('charter-stakeholder-assessment').note}` },
+    { goal: 'Form procedural or policy recommendations from those assessments', tab: 'dec',
+      status: resolved ? 'Captured' : state.dec.length ? 'Started' : 'Gap', note: `${resolved} of ${state.dec.length} decisions resolved` },
+    { goal: 'Review, document, and recommend standards for data definitions, storage, privacy, and reporting', tab: 'dict',
+      status: state.dict.length ? (openTerms ? 'Started' : 'Captured') : 'Gap', note: `${state.dict.length} terms · ${openTerms} awaiting DIG review · ${wsEvidence('charter-privacy-storage').note}` },
+    { goal: 'Ensure KPI data sources and definitions are accurate, consistent, and aligned', tab: 'dict',
+      status: fullTerms === state.dict.length && fullTerms ? 'Captured' : fullTerms ? 'Started' : 'Gap', note: `${fullTerms} of ${state.dict.length} terms have source, calculation, owner, and a review date` },
+    { goal: 'Coordinate data summits', tab: 'work', ...wsEvidence('charter-data-summit') },
+    { goal: 'Track action items', tab: 'work',
+      status: state.work.length ? (doneWs ? 'Captured' : 'Started') : 'Gap', note: `${state.work.length} workstreams · ${doneWs} complete` },
+  ];
+}
+function evidenceRows() {
+  const withRationale = state.dec.filter(d => d.status === 'Resolved' && d.notes).length;
+  const resolvedIssues = state.issues.filter(i => i.status === 'Resolved').length;
+  const done = state.work.filter(w => w.status === 'Complete').length + state.dec.filter(d => d.status === 'Resolved').length;
+  return [
+    { item: 'Meeting agendas and minutes', tab: null, status: 'Gap', note: 'Not captured on this site yet. Keep in the DIG SharePoint/Teams site, or add a Meetings list here.' },
+    { item: 'Records of decisions and rationale', tab: 'dec', status: withRationale ? 'Captured' : state.dec.length ? 'Started' : 'Gap', note: `${withRationale} resolved decision${withRationale === 1 ? '' : 's'} with rationale recorded` },
+    { item: 'Logs of data issues and resolution status', tab: 'issues', status: state.issues.length ? 'Captured' : 'Started', note: state.issues.length ? `${state.issues.length} logged · ${resolvedIssues} resolved` : 'Log is ready; no entries yet' },
+    { item: 'Feedback from data users and how it informs improvements', tab: 'work', ...(() => { const w = wsEvidence('charter-stakeholder-assessment'); return { status: state.issues.length && w.status === 'Gap' ? 'Started' : w.status, note: w.note }; })() },
+    { item: 'Data validation and quality assurance documentation', tab: 'work', ...wsEvidence('charter-validation-qa') },
+    { item: 'Evidence of progress toward goals', tab: 'work', status: done ? 'Captured' : 'Gap', note: `${done} completed workstreams + resolved decisions` },
+    { item: 'Communication strategy for key data changes', tab: 'work', ...wsEvidence('charter-comms-plan') },
+  ];
+}
+function charterTable(rows, firstCol, field) {
+  return `<table class="data-table">
+    <thead><tr><th>${firstCol}</th><th>Status</th><th>Where it lives</th><th>Detail</th></tr></thead>
+    <tbody>${rows.map(r => `
+      <tr>
+        <td style="max-width:320px"><strong>${esc(r[field])}</strong></td>
+        <td>${statusBadge(r.status)}</td>
+        <td>${r.tab ? `<button class="ev-link" onclick="goTab('${r.tab}')">${{ dict: 'Data Dictionary', work: 'Workstreams', dec: 'Governance Decisions', issues: 'Data Issue Log' }[r.tab]}</button>` : '<span class="meta">Outside this site</span>'}</td>
+        <td class="meta" style="max-width:360px">${esc(r.note)}</td>
       </tr>`).join('')}
     </tbody></table>`;
+}
+function renderCharter() {
+  document.getElementById('charter-goals').innerHTML = charterTable(goalRows(), 'Charter goal', 'goal');
+  document.getElementById('charter-evidence').innerHTML = charterTable(evidenceRows(), 'Evidence artifact', 'item');
 }
 
 // ── MODAL FORMS ───────────────────────────────────────────────────────────────
@@ -787,83 +1174,71 @@ function openModal(type, id = null) {
   const overlay = document.getElementById('modal-overlay');
   const title   = document.getElementById('modal-title');
   const body    = document.getElementById('modal-body');
-  const item = id ? state[type].find(x => x.id === id) : null;
-  const v = (field, fallback = '') => item ? (item[field] || fallback) : fallback;
+  const item = id != null ? state[type].find(x => sameId(x.id, id)) : null;
+  const v = (field, fallback = '') => esc(item ? (item[field] || fallback) : fallback);
+  const raw = (field) => item ? (item[field] || '') : '';
 
   if (type === 'dict') {
-    title.textContent = id ? 'Edit Term' : 'Add Term';
+    title.textContent = item ? 'Edit Term' : 'Add Term';
     body.innerHTML = `
       <div class="form-group"><label class="form-label">Term *</label><input class="form-input" id="f-term" value="${v('term')}"></div>
       <div class="form-group"><label class="form-label">Definition *</label><textarea class="form-textarea" id="f-def">${v('definition')}</textarea></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Source System</label><input class="form-input" id="f-src" value="${v('sourceSystem')}"></div>
-        <div class="form-group"><label class="form-label">Domain</label>
-          <select class="form-select" id="f-domain">
-            ${['1 — Definitions & Standards','2 — Collection Integrity','3 — Access & Security','4 — Reporting & Analytics','5 — Stakeholder Coordination'].map(d => `<option ${v('domain')===d?'selected':''}>${d}</option>`).join('')}
-          </select>
-        </div>
+        <div class="form-group"><label class="form-label">Domain</label><select class="form-select" id="f-domain">${domainOptions(raw('domain'))}</select></div>
       </div>
       <div class="form-group"><label class="form-label">Calculation Method</label><textarea class="form-textarea" id="f-calc" style="min-height:60px">${v('calcMethod')}</textarea></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="f-owner" value="${v('owner')}"></div>
-        <div class="form-group"><label class="form-label">Last Review Date</label><input class="form-input" id="f-review" value="${v('lastReview')}"></div>
+        <div class="form-group"><label class="form-label">Owner (Data Steward)</label><input class="form-input" id="f-owner" value="${v('owner')}"></div>
+        <div class="form-group"><label class="form-label">Last Review Date</label><input class="form-input" id="f-review" value="${v('lastReview')}" placeholder="YYYY-MM-DD or OPEN"></div>
       </div>
       <div class="form-actions">
         <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
         <button class="btn btn-primary" onclick="saveDict()">Save Term</button>
       </div>`;
   } else if (type === 'work') {
-    title.textContent = id ? 'Edit Workstream' : 'Add Workstream';
+    title.textContent = item ? 'Edit Workstream' : 'Add Workstream';
     body.innerHTML = `
       <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="f-name" value="${v('name')}"></div>
       <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="f-desc">${v('description')}</textarea></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Domain</label>
-          <select class="form-select" id="f-domain">
-            ${['1 — Definitions & Standards','2 — Collection Integrity','3 — Access & Security','4 — Reporting & Analytics','5 — Stakeholder Coordination','6 — Knowledge Management','7 — Advanced Integrity'].map(d => `<option ${v('domain')===d?'selected':''}>${d}</option>`).join('')}
-          </select>
-        </div>
+        <div class="form-group"><label class="form-label">Domain</label><select class="form-select" id="f-domain">${domainOptions(raw('domain'))}</select></div>
         <div class="form-group"><label class="form-label">Phase</label>
-          <select class="form-select" id="f-phase">
-            ${['Phase 1','Phase 2','Phase 3'].map(p => `<option ${v('phase')===p?'selected':''}>${p}</option>`).join('')}
-          </select>
+          <select class="form-select" id="f-phase">${['Phase 1','Phase 2','Phase 3'].map(p => `<option ${raw('phase')===p?'selected':''}>${p}</option>`).join('')}</select>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Status</label>
-          <select class="form-select" id="f-status">
-            ${WS_STATUSES.map(s => `<option ${v('status')===s?'selected':''}>${s}</option>`).join('')}
-          </select>
+          <select class="form-select" id="f-status">${WS_STATUSES.map(s => `<option ${raw('status')===s?'selected':''}>${s}</option>`).join('')}</select>
         </div>
         <div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="f-owner" value="${v('owner')}"></div>
       </div>
       <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="f-notes" style="min-height:60px">${v('notes')}</textarea></div>
       <div class="form-actions">
+        ${item ? `<button class="btn btn-danger" style="margin-right:auto" onclick="deleteEntry('work','${esc(item.id)}')">Delete</button>` : ''}
         <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
         <button class="btn btn-primary" onclick="saveWork()">Save Workstream</button>
       </div>`;
   } else if (type === 'dec') {
-    title.textContent = id ? 'Update Decision' : 'Add Decision';
+    title.textContent = item ? 'Update Decision' : 'Add Decision';
     body.innerHTML = `
       <div class="form-group"><label class="form-label">Decision *</label><input class="form-input" id="f-decision" value="${v('decision')}"></div>
       <div class="form-group"><label class="form-label">Detail</label><textarea class="form-textarea" id="f-detail">${v('detail')}</textarea></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="f-owner" value="${v('owner')}"></div>
         <div class="form-group"><label class="form-label">Priority</label>
-          <select class="form-select" id="f-priority">
-            ${['🔴 Blocking','🟡 Priority','🟢 Design Phase'].map(p => `<option ${v('priority')===p?'selected':''}>${p}</option>`).join('')}
-          </select>
+          <select class="form-select" id="f-priority">${['🔴 Blocking','🟡 Priority','🟢 Design Phase'].map(p => `<option ${raw('priority')===p?'selected':''}>${p}</option>`).join('')}</select>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Status</label>
-          <select class="form-select" id="f-status">
-            ${['Open','In Review','Resolved'].map(s => `<option ${v('status')===s?'selected':''}>${s}</option>`).join('')}
-          </select>
+          <select class="form-select" id="f-status">${['Open','In Review','Resolved'].map(s => `<option ${raw('status')===s?'selected':''}>${s}</option>`).join('')}</select>
         </div>
       </div>
-      <div class="form-group"><label class="form-label">Notes / Resolution</label><textarea class="form-textarea" id="f-notes">${v('notes')}</textarea></div>
+      <div class="form-group"><label class="form-label">Resolution / Rationale</label><textarea class="form-textarea" id="f-notes" placeholder="What was decided and why">${v('notes')}</textarea></div>
+      <div class="form-group"><label class="form-label">Opposing Views / Risk Advisory</label><textarea class="form-textarea" id="f-dissent" style="min-height:60px" placeholder="The charter asks DIG to forward opposing views with its recommendations">${v('dissent')}</textarea></div>
       <div class="form-actions">
+        ${item ? `<button class="btn btn-danger" style="margin-right:auto" onclick="deleteEntry('dec','${esc(item.id)}')">Delete</button>` : ''}
         <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
         <button class="btn btn-primary" onclick="saveDec()">Save</button>
       </div>`;
@@ -871,9 +1246,7 @@ function openModal(type, id = null) {
     title.textContent = 'Update Issue';
     body.innerHTML = `
       <div class="form-group"><label class="form-label">Status</label>
-        <select class="form-select" id="f-status">
-          ${['Open','Under Review','Resolved'].map(s => `<option ${v('status')===s?'selected':''}>${s}</option>`).join('')}
-        </select>
+        <select class="form-select" id="f-status">${['Open','Under Review','Resolved'].map(s => `<option ${raw('status')===s?'selected':''}>${s}</option>`).join('')}</select>
       </div>
       <div class="form-group"><label class="form-label">IR Notes</label><textarea class="form-textarea" id="f-notes">${v('irNotes')}</textarea></div>
       <div class="form-actions">
@@ -889,44 +1262,63 @@ function closeModalOutside(e) { if (e.target === document.getElementById('modal-
 function editEntry(type, id) { openModal(type, id); }
 function deleteEntry(type, id) {
   if (!confirm('Delete this entry?')) return;
-  state[type] = state[type].filter(x => x.id !== id);
-  save();
-  if (type === 'dict') renderDict();
+  act(async () => { await removeItem(type, id); closeModal(); renderAll(); });
 }
 
 function g(id) { return (document.getElementById(id)||{}).value?.trim() || ''; }
 
+function saveEntry(type, item) {
+  act(async () => {
+    if (currentModal.id != null) await updateItem(type, currentModal.id, item);
+    else await createItem(type, item);
+    closeModal(); renderAll();
+  });
+}
 function saveDict() {
   const item = { term: g('f-term'), definition: g('f-def'), sourceSystem: g('f-src'), domain: g('f-domain'), calcMethod: g('f-calc'), owner: g('f-owner'), lastReview: g('f-review') };
   if (!item.term) { alert('Term is required.'); return; }
-  if (currentModal.id) { Object.assign(state.dict.find(x => x.id === currentModal.id), item); }
-  else { state.dict.push({ id: nextId(state.dict), ...item }); }
-  save(); closeModal(); renderDict();
+  saveEntry('dict', item);
 }
 function saveWork() {
   const item = { name: g('f-name'), description: g('f-desc'), domain: g('f-domain'), phase: g('f-phase'), status: g('f-status'), owner: g('f-owner'), notes: g('f-notes') };
   if (!item.name) { alert('Name is required.'); return; }
-  if (currentModal.id) { Object.assign(state.work.find(x => x.id === currentModal.id), item); }
-  else { state.work.push({ id: nextId(state.work), ...item }); }
-  save(); closeModal(); renderWork();
+  saveEntry('work', item);
 }
 function saveDec() {
-  const item = { decision: g('f-decision'), detail: g('f-detail'), owner: g('f-owner'), priority: g('f-priority'), status: g('f-status'), notes: g('f-notes') };
+  const item = { decision: g('f-decision'), detail: g('f-detail'), owner: g('f-owner'), priority: g('f-priority'), status: g('f-status'), notes: g('f-notes'), dissent: g('f-dissent') };
   if (!item.decision) { alert('Decision title is required.'); return; }
-  if (currentModal.id) { Object.assign(state.dec.find(x => x.id === currentModal.id), item); }
-  else { state.dec.push({ id: nextId(state.dec), ...item }); }
-  save(); closeModal(); renderDec();
+  const prev = currentModal.id != null ? state.dec.find(x => sameId(x.id, currentModal.id)) : null;
+  if (item.status === 'Resolved' && !(prev && prev.resolvedDate)) item.resolvedDate = today();
+  if (item.status !== 'Resolved') item.resolvedDate = '';
+  saveEntry('dec', item);
 }
 function saveIssue() {
+  const prev = state.issues.find(x => sameId(x.id, currentModal.id)) || {};
   const item = { status: g('f-status'), irNotes: g('f-notes') };
-  if (currentModal.id) { Object.assign(state.issues.find(x => x.id === currentModal.id), item); }
-  save(); closeModal(); renderIssues();
+  if (item.status !== 'Open' && !prev.ackDate) item.ackDate = today();
+  if (item.status === 'Resolved' && !prev.resolvedDate) item.resolvedDate = today();
+  saveEntry('issues', item);
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────────
-load();
-updateCounts();
-renderDict();
+(async function init() {
+  document.getElementById('dict-filter-domain').insertAdjacentHTML('beforeend', DOMAINS.map(d => `<option>${esc(d)}</option>`).join(''));
+  if (m365Configured()) {
+    Store = M365Store;
+    try {
+      await M365Store.init();
+      renderAuth();
+      if (M365Store.account) await loadShared();
+      else { renderAll(); setBanner('local', 'Sign in with your RTC Microsoft account to view and edit DIG records.'); }
+    } catch (e) {
+      renderAll();
+      setBanner('error', '⚠️ Microsoft 365 connection failed: ' + esc(e.message));
+    }
+  } else {
+    await reload();
+    setBanner('local', '<span>💻 <strong>Local preview mode.</strong> Changes are saved only in this browser and are not shared with other DIG members. Shared storage switches on once RTC\'s Microsoft 365 connection is configured.</span>');
+  }
+})();
 </script>
 </body>
 </html>
