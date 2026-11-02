@@ -9,24 +9,27 @@
 <style>
 /* ── CSS VARIABLES ── */
 :root {
-  --bg:       #F5F4F0;
+  /* RTC official palette: Blue #002d56, Maroon #98002e, Tan #b9ab97, Gray #717073, Cream #e9e3dc */
+  --bg:       #F7F4EF;
   --surface:  #FFFFFF;
-  --navy:     #1C2B4A;
-  --blue:     #2156A8;
-  --blue-lt:  #EBF0FA;
-  --teal:     #1A6B72;
-  --teal-lt:  #E4F2F3;
-  --amber:    #915C0A;
-  --amber-lt: #FDF3E3;
-  --red:      #9B2335;
-  --red-lt:   #FCEDEF;
+  --navy:     #002D56;
+  --blue:     #98002E;
+  --blue-lt:  #F6E6EB;
+  --teal:     #1F5A85;
+  --teal-lt:  #E6EEF5;
+  --amber:    #8A5A12;
+  --amber-lt: #F8EFE0;
+  --red:      #B42318;
+  --red-lt:   #FDECEA;
   --green:    #2D6A3F;
   --green-lt: #E8F5ED;
-  --gray:     #6B7280;
-  --border:   #DDD9D0;
+  --gray:     #717073;
+  --border:   #DDD4C8;
   --text:     #1A1A1A;
-  --text-sm:  #4B5563;
-  --shadow:   0 2px 12px rgba(28,43,74,0.08);
+  --text-sm:  #4A4A4D;
+  --tan:      #B9AB97;
+  --cream:    #E9E3DC;
+  --shadow:   0 2px 12px rgba(0,45,86,0.08);
   --radius:   6px;
 }
 
@@ -54,6 +57,7 @@ body {
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  border-bottom: 4px solid var(--blue);
 }
 .site-header .logo {
   display: flex;
@@ -72,7 +76,7 @@ body {
   font-weight: 500;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.55);
+  color: var(--tan);
 }
 .header-badge {
   background: rgba(255,255,255,0.12);
@@ -190,7 +194,7 @@ body {
   gap: 6px;
 }
 .btn-primary { background: var(--blue); color: white; }
-.btn-primary:hover { background: #1a4590; }
+.btn-primary:hover { background: #7A0025; }
 .btn-secondary { background: var(--surface); color: var(--navy); border: 1.5px solid var(--border); }
 .btn-secondary:hover { border-color: var(--navy); }
 .btn-danger { background: var(--red-lt); color: var(--red); border: 1.5px solid var(--red); }
@@ -236,7 +240,7 @@ body {
 .badge-amber   { background: var(--amber-lt); color: var(--amber); }
 .badge-red     { background: var(--red-lt); color: var(--red); }
 .badge-green   { background: var(--green-lt); color: var(--green); }
-.badge-gray    { background: #F3F4F6; color: var(--gray); }
+.badge-gray    { background: var(--cream); color: var(--gray); }
 
 /* ── MODAL ── */
 .modal-overlay {
@@ -294,7 +298,7 @@ body {
   border-left: 4px solid var(--border);
   transition: box-shadow 0.15s;
 }
-.card:hover { box-shadow: 0 4px 20px rgba(28,43,74,0.12); }
+.card:hover { box-shadow: 0 4px 20px rgba(0,45,86,0.12); }
 .card.priority-blocking { border-left-color: var(--red); }
 .card.priority-high     { border-left-color: var(--amber); }
 .card.priority-medium   { border-left-color: var(--blue); }
