@@ -196,6 +196,7 @@ body {
   gap: 6px;
 }
 .btn-primary { background: var(--blue); color: white; }
+a.btn { text-decoration: none; }
 .btn-primary:hover { background: #001F3D; }
 .btn-secondary { background: var(--surface); color: var(--navy); border: 1.5px solid var(--border); }
 .btn-secondary:hover { border-color: var(--navy); }
@@ -504,6 +505,7 @@ body {
   <button class="tab-btn" onclick="switchTab(this,'apr')">
     🔁 Program Review Cycle <span class="tab-count" id="count-apr">0</span>
   </button>
+  <button class="tab-btn" onclick="switchTab(this,'help')">❓ How to use</button>
   <span class="tab-sep"></span>
   <span class="tab-group-label">DIG</span>
   <button class="tab-btn" onclick="switchTab(this,'dict')">
@@ -616,6 +618,40 @@ body {
       <button class="btn btn-primary" onclick="openModal('apr')">+ Add Item</button>
     </div>
     <div class="apr-cols" id="apr-cols"></div>
+  </div>
+
+  <!-- ── HOW TO USE ── -->
+  <div id="tab-help" class="tab-panel">
+    <div class="page-header">
+      <div class="page-title">How to use this site</div>
+      <div class="page-subtitle">A one-page start. The full how-to guide has step-by-step sections for each group.</div>
+    </div>
+    <div class="charter-intro">
+      <p><strong>1. Pick your group.</strong> Set <em>Viewing as</em> (top right of the tabs) to DIG, Program Review, or Curriculum. Every alignment board then shows only what involves your group.</p>
+      <p><strong>2. Start on the Combined board.</strong> It shows summary counts, one column per group, and every open item across the boards, newest first.</p>
+      <p><strong>3. Follow the chips.</strong> Blue chips link one board's item to another's. A red chip means the linked decision or definition is still open and is holding something up.</p>
+      <p><strong>4. Update as you work.</strong> Click Update or Edit on any row or card. The change date is recorded for you.</p>
+      <p><strong>5. Tell the others.</strong> On the Combined board, click Send update, pick a group and a start date, then copy the summary or open it in email.</p>
+      <div class="charter-facts">
+        <a class="btn btn-primary btn-sm" href="https://claude.ai/artifact/EVWQcgVFMTdYRSAysVZ1uH" target="_blank" rel="noopener">Open the full how-to guide ↗</a>
+      </div>
+    </div>
+    <div class="section-title">What each group does here</div>
+    <div class="section-sub">The main tasks, and where to do them.</div>
+    <div class="table-scroll"><table class="data-table">
+      <thead><tr><th>Group</th><th>Main tasks</th><th>Boards</th></tr></thead>
+      <tbody>
+        <tr><td><strong>DIG</strong></td><td>Resolve governance decisions (with rationale) and close OPEN definitions so Program Review data can be trusted; route findings; answer data issues within 2 business days.</td><td><button class="ev-link" onclick="goTab('dec')">Governance Decisions</button> · <button class="ev-link" onclick="goTab('dict')">Data Dictionary</button> · <button class="ev-link" onclick="goTab('xw')">Crosswalk</button> · <button class="ev-link" onclick="goTab('issues')">Data Issue Log</button></td></tr>
+        <tr><td><strong>Program Review</strong></td><td>Check which APR data points depend on unresolved DIG items; track committee action items; raise data concerns.</td><td><button class="ev-link" onclick="goTab('apr')">Program Review Cycle</button> · <button class="ev-link" onclick="goTab('xw')">Crosswalk</button></td></tr>
+        <tr><td><strong>Curriculum</strong></td><td>Verify each program against the catalog and ctcLink; move each change through the 13 approval and publishing steps with Next step.</td><td><button class="ev-link" onclick="goTab('prog')">Programs</button> · <button class="ev-link" onclick="goTab('chg')">Curriculum Changes</button> · <button class="ev-link" onclick="goTab('xw')">Crosswalk</button></td></tr>
+      </tbody>
+    </table></div>
+    <div class="section-title">Where your changes are saved</div>
+    <div class="charter-intro">
+      <p><strong>Local preview mode</strong> (tan banner): changes stay in this browser only. Share them with Send update, or Export the data and send the file.</p>
+      <p><strong>Shared mode</strong> (green banner): sign in with your RTC Microsoft account; changes are saved in RTC's SharePoint and everyone sees them.</p>
+      <p><strong>Keep private items out of the site's code.</strong> The code and its starter data are public. Enter unapproved proposals, names, student data, and APR figures on the boards or load them with Import.</p>
+    </div>
   </div>
 
   <!-- ── DICTIONARY ── -->
@@ -1140,10 +1176,10 @@ async function loadStarterData() {
 }
 
 // ── TABS + ROUTING (each board has its own link: dig.bknown.pro/#crosswalk, #programs, …) ──
-const TAB_SLUGS = { hub: 'combined', xw: 'crosswalk', prog: 'programs', chg: 'curriculum', apr: 'program-review',
+const TAB_SLUGS = { hub: 'combined', xw: 'crosswalk', prog: 'programs', chg: 'curriculum', apr: 'program-review', help: 'help',
                     dict: 'dictionary', work: 'workstreams', dec: 'decisions', issues: 'issues', charter: 'charter' };
 const SLUG_TABS = Object.fromEntries(Object.entries(TAB_SLUGS).map(([t, s]) => [s, t]));
-const TAB_NAMES = { hub: 'Combined', xw: 'Crosswalk', prog: 'Programs', chg: 'Curriculum Changes', apr: 'Program Review Cycle',
+const TAB_NAMES = { hub: 'Combined', xw: 'Crosswalk', prog: 'Programs', chg: 'Curriculum Changes', apr: 'Program Review Cycle', help: 'How to use',
                     dict: 'Data Dictionary', work: 'Workstreams', dec: 'Governance Decisions', issues: 'Data Issue Log', charter: 'Charter & Evidence' };
 let currentTab = 'hub';
 function switchTab(btn, tab) {
