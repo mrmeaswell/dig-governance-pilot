@@ -96,6 +96,7 @@ body {
   border-bottom: 2px solid var(--border);
   padding: 0 32px;
   display: flex;
+  flex-wrap: wrap;
   gap: 0;
   position: sticky;
   top: 64px;
@@ -414,15 +415,62 @@ body {
 .ev-link { color: var(--blue); cursor: pointer; text-decoration: underline; background: none; border: none; font: inherit; font-size: 12px; padding: 0; }
 .table-scroll { overflow-x: auto; border-radius: 8px; }
 
+/* ── TAB GROUPS + ROLE FILTER ── */
+.tab-group-label {
+  align-self: center; font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--tan); padding: 0 6px 0 4px; white-space: nowrap;
+}
+.tab-sep { width: 1px; background: var(--border); margin: 10px 10px; }
+.role-bar {
+  margin-left: auto; display: flex; align-items: center; gap: 8px; padding-left: 16px;
+  font-size: 12px; color: var(--gray); white-space: nowrap;
+}
+.role-bar select { padding: 5px 8px; font-size: 12px; }
+
+/* ── PIPELINE (curriculum stages) ── */
+.pipe { display: flex; gap: 2px; min-width: 180px; }
+.pipe span { flex: 1; height: 8px; border-radius: 2px; background: var(--cream); }
+.pipe span.done { background: var(--green); }
+.pipe span.now  { background: var(--blue); }
+.pipe-label { font-size: 11px; color: var(--gray); margin-top: 4px; }
+
+/* ── FUNNEL (combined board) ── */
+.funnel { display: grid; grid-template-columns: repeat(4, 1fr) 40px 1fr; gap: 12px; align-items: stretch; margin-bottom: 24px; }
+.funnel .arrow { display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--tan); }
+.funnel .summary-card { cursor: pointer; }
+.funnel .summary-card:hover { box-shadow: 0 4px 20px rgba(0,45,86,0.14); }
+.funnel .summary-card.hub { border-top-color: var(--maroon); background: var(--cream); }
+.lanes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
+.lanes.one { grid-template-columns: 1fr; }
+.lane { background: var(--surface); border-radius: 8px; box-shadow: var(--shadow); padding: 16px; }
+.lane-title { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
+.lane ul { list-style: none; }
+.lane li { font-size: 12px; padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; gap: 8px; }
+.lane li:last-child { border-bottom: none; }
+.ref-chip { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: var(--blue-lt); color: var(--blue); cursor: pointer; margin: 1px 2px 1px 0; border: none; font-family: inherit; }
+.ref-chip.missing { background: var(--cream); color: var(--gray); cursor: default; }
+.ref-chip.blocked { background: var(--red-lt); color: var(--red); }
+.role-tags .badge { margin-right: 3px; }
+.digest-box { width: 100%; min-height: 280px; font-family: 'DM Mono', monospace; font-size: 12px; }
+.apr-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
 @media (max-width: 900px) {
+  .funnel { grid-template-columns: 1fr 1fr; }
+  .funnel .arrow { display: none; }
+  .lanes, .apr-cols { grid-template-columns: 1fr; }
+  .role-bar { padding-left: 8px; }
   .mode-banner { padding: 10px 16px; }
   .site-header { padding: 0 16px; }
   .header-badge { display: none; }
   .main { padding: 16px; }
-  .tab-bar { padding: 0 16px; overflow-x: auto; }
+  .tab-bar { padding: 0 16px; overflow-x: auto; flex-wrap: nowrap; }
   .kanban { grid-template-columns: 1fr 1fr; }
   .summary-bar { grid-template-columns: 1fr 1fr; }
   .form-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .kanban, .summary-bar, .funnel { grid-template-columns: 1fr; }
+  .site-header .logo-secondary { display: none; }
 }
 </style>
 </head>
@@ -431,16 +479,34 @@ body {
 <header class="site-header">
   <div class="logo">
     <span class="logo-primary">DIG Governance</span>
-    <span class="logo-secondary">Renton Technical College · Pilot</span>
+    <span class="logo-secondary">Renton Technical College · DIG · Program Review · Curriculum</span>
   </div>
   <div class="header-right">
-    <span class="header-badge">Data Management &amp; Policy Workgroup</span>
+    <span class="header-badge">Alignment Pilot</span>
     <span id="auth-area"></span>
   </div>
 </header>
 
 <div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab(this,'dict')">
+  <span class="tab-group-label">Alignment</span>
+  <button class="tab-btn" onclick="switchTab(this,'hub')">
+    🧭 Combined <span class="tab-count" id="count-hub">0</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab(this,'xw')">
+    🔗 Crosswalk <span class="tab-count" id="count-xw">0</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab(this,'prog')">
+    🏫 Programs <span class="tab-count" id="count-prog">0</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab(this,'chg')">
+    🛠️ Curriculum Changes <span class="tab-count" id="count-chg">0</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab(this,'apr')">
+    🔁 Program Review Cycle <span class="tab-count" id="count-apr">0</span>
+  </button>
+  <span class="tab-sep"></span>
+  <span class="tab-group-label">DIG</span>
+  <button class="tab-btn" onclick="switchTab(this,'dict')">
     📖 Data Dictionary <span class="tab-count" id="count-dict">0</span>
   </button>
   <button class="tab-btn" onclick="switchTab(this,'work')">
@@ -455,13 +521,105 @@ body {
   <button class="tab-btn" onclick="switchTab(this,'charter')">
     📜 Charter &amp; Evidence <span class="tab-count" id="count-charter">0</span>
   </button>
+  <div class="role-bar">
+    <label for="role-filter">Viewing as</label>
+    <select class="filter-select" id="role-filter" onchange="setRole(this.value)">
+      <option value="">All parties</option>
+      <option>DIG</option>
+      <option>Program Review</option>
+      <option>Curriculum</option>
+    </select>
+  </div>
 </div>
 <div class="mode-banner" id="mode-banner"></div>
 
 <div class="main">
 
+  <!-- ── COMBINED (HUB) ── -->
+  <div id="tab-hub" class="tab-panel">
+    <div class="page-header">
+      <div class="page-title">Combined Alignment Board</div>
+      <div class="page-subtitle" id="hub-subtitle">Every board funnels here: programs surface findings, findings are routed through the crosswalk, and each party's open work shows up in one place.</div>
+    </div>
+    <div class="funnel" id="hub-funnel"></div>
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="openDigest()">✉️ Send update</button>
+      <button class="btn btn-secondary" onclick="exportData()">⬇️ Export data (JSON)</button>
+      <label class="btn btn-secondary" style="cursor:pointer">⬆️ Import data<input type="file" accept=".json,application/json" style="display:none" onchange="importData(this)"></label>
+    </div>
+    <div class="lanes" id="hub-lanes"></div>
+    <div class="section-title">Everything open, across all boards</div>
+    <div class="section-sub">Newest activity first. Filtered by the "Viewing as" selector.</div>
+    <div id="hub-table"></div>
+  </div>
+
+  <!-- ── CROSSWALK ── -->
+  <div id="tab-xw" class="tab-panel">
+    <div class="page-header">
+      <div class="page-title">Crosswalk</div>
+      <div class="page-subtitle">Each finding, linked to the DIG workstream or decision that governs it, the Program Review item it affects, and the curriculum change that fixes it.</div>
+    </div>
+    <div class="toolbar">
+      <input class="search-box" id="xw-search" placeholder="Search findings…" oninput="renderXw()">
+      <select class="filter-select" id="xw-filter-status" onchange="renderXw()">
+        <option value="">All Statuses</option><option>Open</option><option>In Progress</option><option>Resolved</option>
+      </select>
+      <button class="btn btn-primary" onclick="openModal('xw')">+ Add Finding</button>
+    </div>
+    <div id="xw-table"></div>
+  </div>
+
+  <!-- ── PROGRAMS ── -->
+  <div id="tab-prog" class="tab-panel">
+    <div class="page-header">
+      <div class="page-title">Program Inventory</div>
+      <div class="page-subtitle" id="prog-subtitle">Active programs as published on the RTC Program Mapping site. Verify each against the catalog and ctcLink.</div>
+    </div>
+    <div class="summary-bar" id="prog-summary"></div>
+    <div class="toolbar">
+      <input class="search-box" id="prog-search" placeholder="Search programs…" oninput="renderProg()">
+      <select class="filter-select" id="prog-filter-area" onchange="renderProg()"><option value="">All Areas</option></select>
+      <select class="filter-select" id="prog-filter-status" onchange="renderProg()">
+        <option value="">All Statuses</option><option>Not verified</option><option>Discrepancies found</option><option>Verified</option>
+      </select>
+      <button class="btn btn-primary" onclick="openModal('prog')">+ Add Program</button>
+    </div>
+    <div id="prog-table"></div>
+  </div>
+
+  <!-- ── CURRICULUM CHANGES ── -->
+  <div id="tab-chg" class="tab-panel">
+    <div class="page-header">
+      <div class="page-title">Curriculum Change Tracker</div>
+      <div class="page-subtitle">Each change moves through the approval and publishing steps from the Institutional Alignment template, ending with the public program map and website.</div>
+    </div>
+    <div class="summary-bar" id="chg-summary"></div>
+    <div class="toolbar">
+      <input class="search-box" id="chg-search" placeholder="Search changes…" oninput="renderChg()">
+      <select class="filter-select" id="chg-filter-stage" onchange="renderChg()"><option value="">All Stages</option></select>
+      <button class="btn btn-primary" onclick="openModal('chg')">+ Add Change</button>
+    </div>
+    <div id="chg-table"></div>
+  </div>
+
+  <!-- ── PROGRAM REVIEW CYCLE ── -->
+  <div id="tab-apr" class="tab-panel">
+    <div class="page-header">
+      <div class="page-title">Program Review Cycle</div>
+      <div class="page-subtitle">APR data points and action items, with the DIG definitions and decisions each one depends on. A red chip means the data point can't be trusted until DIG resolves it.</div>
+    </div>
+    <div class="summary-bar" id="apr-summary"></div>
+    <div class="toolbar">
+      <select class="filter-select" id="apr-filter-status" onchange="renderApr()">
+        <option value="">All Statuses</option><option>Not Started</option><option>In Progress</option><option>Blocked</option><option>Complete</option>
+      </select>
+      <button class="btn btn-primary" onclick="openModal('apr')">+ Add Item</button>
+    </div>
+    <div class="apr-cols" id="apr-cols"></div>
+  </div>
+
   <!-- ── DICTIONARY ── -->
-  <div id="tab-dict" class="tab-panel active">
+  <div id="tab-dict" class="tab-panel">
     <div class="page-header">
       <div class="page-title">Data Dictionary</div>
       <div class="page-subtitle">Institutional definitions for all APR and governance metrics — the single most valuable artifact DIG can produce.</div>
@@ -616,6 +774,7 @@ body {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.28.1/lib/msal-browser.min.js"></script>
+<script src="data/program-inventory.js"></script>
 <script>
 // ── CONFIG ─────────────────────────────────────────────────────────────────────
 // Fill these in after CTS registers the app (see setup/provision-sharepoint-lists.ps1).
@@ -629,9 +788,23 @@ const M365_CONFIG = {
     dict:   'DIG Data Dictionary',
     work:   'DIG Workstreams',
     dec:    'DIG Decisions',
-    issues: 'DIG Data Issues'
+    issues: 'DIG Data Issues',
+    // Alignment boards (optional: the site still loads if these lists don't exist yet)
+    xw:     'Alignment Crosswalk',
+    prog:   'Alignment Programs',
+    chg:    'Alignment Curriculum Changes',
+    apr:    'Alignment Program Review'
   }
 };
+const TYPES = ['dict', 'work', 'dec', 'issues', 'xw', 'prog', 'chg', 'apr'];
+const OPTIONAL_TYPES = ['xw', 'prog', 'chg', 'apr'];
+const ROLES = ['DIG', 'Program Review', 'Curriculum'];
+// Steps from the Institutional Alignment template ("Template Document Alignment" tab).
+const CHG_STAGES = [
+  'Summary & agenda', 'Stakeholder meeting', 'Credit analysis & program outline', 'Curriculog',
+  'Curriculum Committee', 'Aculog', 'ctcLink catalog', 'ctcLink prereq build', 'AAR',
+  'Washington Career Bridge', "PRGs & program maps", 'Website', 'Complete'
+];
 const GRAPH_SCOPES = ['User.Read', 'Sites.ReadWrite.All'];
 
 // ── DOMAINS (single source of truth) ──────────────────────────────────────────
@@ -647,6 +820,7 @@ const DOMAINS = [
 
 // ── SEED DATA ──────────────────────────────────────────────────────────────────
 // Each seed has a stable `key` so new seeds can be merged into existing data without duplicates.
+const SEED_DATE = '2026-11-08';   // when the alignment starter data was compiled
 const SEED = {
   dict: [
     { key: "d1", term: "Enrollment Headcount (HC)", definition: "The unduplicated count of students enrolled in a program at census date. Each student counted once regardless of how many courses they take.", sourceSystem: "ctcLink", calcMethod: "Count of distinct Student IDs with active enrollment at census date, per program CIP code.", domain: "1 — Definitions & Standards", owner: "IR", lastReview: "2026-02-01" },
@@ -695,10 +869,53 @@ const SEED = {
     { key: "charter-routing", decision: "Recommendation Routing", detail: "Which council receives each type of recommendation and risk advisory (Resource & Planning Council, Cabinet, Administrative groups), and how opposing views are attached.", owner: "DIG Chair", priority: "🟡 Priority", status: "Open", notes: "", dissent: "" },
     { key: "charter-membership", decision: "Annual Membership Review", detail: "Confirm representation from each office named in the charter, apply the 50% attendance rule, and decide how topics reach departments not present.", owner: "DIG Chair", priority: "🟡 Priority", status: "Open", notes: "", dissent: "" },
   ],
-  issues: []
+  issues: [],
+  // ── Alignment boards ──
+  // Crosswalk refs use seed keys: dig = workstream/decision/term keys, apr = Program Review keys, chg = curriculum change keys.
+  xw: [
+    { key: "x-soc", finding: "Occupation (SOC) codes on program dashboards don't match the entry-level roles programs actually target, and SOC codes are not recorded per program.", scope: "All programs (first seen in CNT)", digRef: "w3", aprRef: "a-occ", chgRef: "", roles: "DIG,Program Review", status: "Open", nextAction: "Confirm SOC assignments for each program and adopt the Occupation Classification Policy.", owner: "IR" },
+    { key: "x-status", finding: "\"Active program\" means different things in the program maps, the catalog, and ctcLink.", scope: "All programs", digRef: "w5", aprRef: "", chgRef: "", roles: "DIG,Program Review,Curriculum", status: "Open", nextAction: "Add program status terms to the Data Dictionary with ctcLink as the source of record.", owner: "Curriculum + IR" },
+    { key: "x-completion", finding: "APR completion rates and Washington Career Bridge completion rates use different cohort and time-frame definitions, so the same program shows very different completion figures.", scope: "All programs", digRef: "c1,c2,d4", aprRef: "a-completion", chgRef: "", roles: "DIG,Program Review", status: "Open", nextAction: "Resolve census and cohort definitions; note the definition beside every completion figure.", owner: "IR + DIG" },
+    { key: "x-length", finding: "Program length and credits are reported inconsistently (e.g., quarters on Career Bridge vs. the program map; a course with no credits listed).", scope: "All programs (first seen in CNT)", digRef: "w5", aprRef: "", chgRef: "chg-public-info", roles: "Curriculum,DIG", status: "Open", nextAction: "Verify each program's credits and quarters against the catalog; correct public listings.", owner: "Curriculum" },
+    { key: "x-certs", finding: "Industry certifications advertised on rtc.edu, Career Bridge, and program-map PLOs don't match each other or what courses currently prepare for.", scope: "IT programs (pattern likely elsewhere)", digRef: "w2", aprRef: "a-slo", chgRef: "chg-public-info", roles: "DIG,Program Review,Curriculum", status: "Open", nextAction: "Agree on one certification list per program and use it in PLOs and all public listings.", owner: "Program faculty + Curriculum" },
+    { key: "x-drift", finding: "The same program facts live in five places (program maps, catalog, ctcLink, Career Bridge, website) and drift apart.", scope: "All programs", digRef: "charter-validation-qa", aprRef: "", chgRef: "", roles: "Curriculum,DIG", status: "Open", nextAction: "Treat catalog/ctcLink as the source of record; log each drift in the Data Issue Log and track fixes on Curriculum Changes.", owner: "Curriculum + DIG" },
+    { key: "x-bypass", finding: "Students who bypass courses with industry certifications or prior learning are coded inconsistently in ctcLink, which distorts headcount and completion data.", scope: "Programs aligned to industry certifications", digRef: "d7,d8,c2", aprRef: "a-enroll,a-completion", chgRef: "", roles: "DIG,Program Review,Curriculum", status: "Open", nextAction: "Apply the credential-bypass coding standard (WV / CPL) consistently.", owner: "Registration + Curriculum" },
+    { key: "x-titles", finding: "Some course titles no longer match course content.", scope: "CNT (check other programs)", digRef: "", aprRef: "a-slo", chgRef: "chg-cnt160-title,chg-cnt290-title", roles: "Curriculum,Program Review", status: "In Progress", nextAction: "Submit catalog correction notices through Curriculog.", owner: "Program faculty" },
+    { key: "x-bas", finding: "Program maps still promote a BAS pathway that is no longer accepting students.", scope: "IT programs", digRef: "", aprRef: "", chgRef: "chg-public-info", roles: "Curriculum", status: "Open", nextAction: "Submit a Program Map Update Request; list current transfer partners instead.", owner: "Curriculum" },
+    { key: "x-gened", finding: "Some AAS-T and DTA program maps list gen ed options marked ^ (best for certificates/AAS only).", scope: "Programs with AAS-T or DTA credentials", digRef: "w5", aprRef: "", chgRef: "chg-gened", roles: "Curriculum,Program Review", status: "Open", nextAction: "Confirm a transfer-level option is shown for each AAS-T/DTA requirement.", owner: "Curriculum + Gen Ed" },
+    { key: "x-score", finding: "Program-by-program discrepancy counts from this inventory are a first version of a data quality scorecard.", scope: "All programs", digRef: "w7", aprRef: "", chgRef: "", roles: "DIG", status: "Open", nextAction: "Re-run the program-map inventory each term and track discrepancy counts over time.", owner: "DIG" }
+  ],
+  prog: (typeof PROGRAM_SEED !== 'undefined' ? PROGRAM_SEED : []).map(p => ({ updated: SEED_DATE, ...p })),
+  chg: [
+    { key: "chg-cnt160-title", title: "CNT 160: correct catalog title and description to match course content", program: "Cloud Network Technology Certificate and AAS-T", ctype: "Retitle / description", stage: "Summary & agenda", owner: "Program faculty", due: "", notes: "Correction notice drafted; submit through Curriculog.", roles: "Curriculum" },
+    { key: "chg-cnt290-title", title: "CNT 290: correct catalog title and description to match course content", program: "Cloud Network Technology Certificate and AAS-T", ctype: "Retitle / description", stage: "Summary & agenda", owner: "Program faculty", due: "", notes: "Correction notice drafted; submit through Curriculog.", roles: "Curriculum" },
+    { key: "chg-public-info", title: "CNT public information cleanup: remove BAS references, list CNT 263 credits, align advertised certifications, correct program length on Career Bridge", program: "Cloud Network Technology Certificate and AAS-T", ctype: "Public information", stage: "Summary & agenda", owner: "Program faculty + Curriculum", due: "", notes: "Program Map Update Request + Career Bridge update.", roles: "Curriculum" },
+    { key: "chg-gened", title: "Review gen ed options on AAS-T and DTA program maps (^ courses)", program: "All programs", ctype: "Gen ed", stage: "Summary & agenda", owner: "Curriculum + Gen Ed", due: "", notes: "", roles: "Curriculum,Program Review" }
+  ],
+  apr: [
+    { key: "a-enroll", item: "Enrollment trends (headcount & FTE)", cycle: "Spring", category: "Student information", depends: "d1,d2,c1", status: "Not Started", owner: "IR", notes: "", roles: "Program Review,DIG" },
+    { key: "a-demo", item: "Student demographics", cycle: "Spring", category: "Student information", depends: "c3", status: "Not Started", owner: "IR", notes: "", roles: "Program Review,DIG" },
+    { key: "a-gpa", item: "Average GPA", cycle: "Spring", category: "Student achievement", depends: "w1", status: "Not Started", owner: "IR", notes: "", roles: "Program Review,DIG" },
+    { key: "a-ret", item: "Q1 → Q2 retention", cycle: "Spring", category: "Student achievement", depends: "d3,c2", status: "Not Started", owner: "IR", notes: "", roles: "Program Review,DIG" },
+    { key: "a-persist", item: "1-year persistence", cycle: "Spring", category: "Student achievement", depends: "c2", status: "Not Started", owner: "IR", notes: "", roles: "Program Review,DIG" },
+    { key: "a-completion", item: "Completion rate", cycle: "Spring", category: "Student achievement", depends: "d4,c1,c2", status: "Not Started", owner: "IR", notes: "", roles: "Program Review,DIG" },
+    { key: "a-employ", item: "Employment rate", cycle: "Spring", category: "Student achievement", depends: "w1", status: "Not Started", owner: "IR", notes: "", roles: "Program Review,DIG" },
+    { key: "a-slo", item: "Student learning outcomes (PLOs)", cycle: "Spring", category: "Learning & feedback", depends: "d6,c5,w2", status: "Not Started", owner: "Program faculty", notes: "", roles: "Program Review,DIG,Curriculum" },
+    { key: "a-evals", item: "Course evaluations", cycle: "Spring", category: "Learning & feedback", depends: "w4", status: "Not Started", owner: "IR", notes: "", roles: "Program Review,DIG" },
+    { key: "a-occ", item: "Occupation data (high-skill / high-wage / in-demand; skills gap)", cycle: "Spring", category: "Occupation data", depends: "w3", status: "Not Started", owner: "IR", notes: "", roles: "Program Review,DIG" },
+    { key: "a-fin", item: "Program financials (supply budget, revenue, costs)", cycle: "Spring", category: "Program data", depends: "c4", status: "Not Started", owner: "Finance + IR", notes: "", roles: "Program Review,DIG" },
+    { key: "a-load", item: "Full-time vs. adjunct credits taught", cycle: "Spring", category: "Program data", depends: "", status: "Not Started", owner: "IR", notes: "", roles: "Program Review" },
+    { key: "a-fall-enroll", item: "Enrollment trends: last 3 academic years (annualized FTE, unduplicated headcount)", cycle: "Fall", category: "Student information", depends: "d1,d2,c1", status: "Not Started", owner: "IR", notes: "", roles: "Program Review,DIG" },
+    { key: "a-fall-demo", item: "Student demographics incl. full-time / part-time status", cycle: "Fall", category: "Student information", depends: "c3", status: "Not Started", owner: "IR", notes: "", roles: "Program Review,DIG" },
+    { key: "a-act-cipsoc", item: "Provide CIP/SOC code descriptions to program faculty", cycle: "Action items", category: "Committee action", depends: "w3", status: "Not Started", owner: "IR", notes: "", roles: "Program Review,DIG,Curriculum" },
+    { key: "a-act-plo", item: "Confirm PLO assessments are scheduled for the coming academic year", cycle: "Action items", category: "Committee action", depends: "c5", status: "Not Started", owner: "Program faculty", notes: "", roles: "Program Review,Curriculum" },
+    { key: "a-act-plans", item: "Verify students are in the correct academic plans", cycle: "Action items", category: "Committee action", depends: "", status: "Not Started", owner: "Program faculty + Advising", notes: "", roles: "Program Review,Curriculum" }
+  ]
 };
+['xw', 'chg', 'apr'].forEach(t => SEED[t].forEach(x => { if (!x.updated) x.updated = SEED_DATE; }));
 // Keys that existed before seeds carried keys (v1 local data used ids 1–8 for these).
 const LEGACY_KEYS = { dict: 'd', work: 'w', dec: 'c' };
+const SEEDED_TYPES = ['dict', 'work', 'dec', 'xw', 'prog', 'chg', 'apr'];
 
 // ── HELPERS ────────────────────────────────────────────────────────────────────
 function esc(v) {
@@ -728,10 +945,10 @@ const LocalStore = {
     const applied = new Set(saved.seedApplied || []);
     if (isLegacy) Object.entries(LEGACY_KEYS).forEach(([t, p]) => { for (let i = 1; i <= 8; i++) applied.add(p + i); });
     const data = {};
-    for (const type of ['dict', 'work', 'dec', 'issues']) {
+    for (const type of TYPES) {
       data[type] = Array.isArray(saved[type]) ? saved[type] : [];
       if (isLegacy && LEGACY_KEYS[type]) data[type].forEach(x => { if (!x.key && x.id <= 8) x.key = LEGACY_KEYS[type] + x.id; });
-      for (const seed of SEED[type]) {
+      for (const seed of (SEED[type] || [])) {
         if (applied.has(seed.key)) continue;
         data[type].push({ ...seed, id: nextId(data[type]) });
         applied.add(seed.key);
@@ -756,7 +973,11 @@ const FIELD_MAP = {
   dict:   { term: 'Title', definition: 'Definition', sourceSystem: 'SourceSystem', calcMethod: 'CalcMethod', domain: 'Domain', owner: 'OwnerName', lastReview: 'LastReview', key: 'SeedKey' },
   work:   { name: 'Title', description: 'WorkDescription', domain: 'Domain', phase: 'Phase', status: 'Status', owner: 'OwnerName', notes: 'Notes', key: 'SeedKey' },
   dec:    { decision: 'Title', detail: 'Detail', owner: 'OwnerName', priority: 'Priority', status: 'Status', notes: 'Notes', dissent: 'Dissent', resolvedDate: 'ResolvedDate', key: 'SeedKey' },
-  issues: { title: 'Title', submitter: 'Submitter', program: 'Program', metric: 'Metric', date: 'DateObserved', description: 'IssueDescription', status: 'Status', irNotes: 'IRNotes', dateSubmitted: 'DateSubmitted', ackDate: 'AckDate', resolvedDate: 'ResolvedDate' }
+  issues: { title: 'Title', submitter: 'Submitter', program: 'Program', metric: 'Metric', date: 'DateObserved', description: 'IssueDescription', status: 'Status', irNotes: 'IRNotes', dateSubmitted: 'DateSubmitted', ackDate: 'AckDate', resolvedDate: 'ResolvedDate' },
+  xw:     { finding: 'Title', scope: 'Scope', digRef: 'DigRef', aprRef: 'AprRef', chgRef: 'ChgRef', roles: 'Roles', status: 'Status', nextAction: 'NextAction', owner: 'OwnerName', key: 'SeedKey' },
+  prog:   { name: 'Title', area: 'Area', credentials: 'Credentials', schedule: 'Schedule', courses: 'Courses', genEd: 'GenEdCredits', flags: 'Flags', source: 'SourceUrl', status: 'Status', owner: 'OwnerName', notes: 'Notes', roles: 'Roles', key: 'SeedKey' },
+  chg:    { title: 'Title', program: 'Program', ctype: 'ChangeType', stage: 'Stage', owner: 'OwnerName', due: 'DueDate', notes: 'Notes', roles: 'Roles', key: 'SeedKey' },
+  apr:    { item: 'Title', cycle: 'Cycle', category: 'Category', depends: 'DependsOn', status: 'Status', owner: 'OwnerName', notes: 'Notes', roles: 'Roles', key: 'SeedKey' }
 };
 const m365Configured = () => !!(M365_CONFIG.tenantId && M365_CONFIG.clientId && M365_CONFIG.siteHostname);
 
@@ -803,7 +1024,7 @@ const M365Store = {
     return f;
   },
   fromItem(type, it) {
-    const rec = { id: it.id };
+    const rec = { id: it.id, updated: String(it.lastModifiedDateTime || '').slice(0, 10) };
     for (const [k, col] of Object.entries(FIELD_MAP[type])) rec[k] = it.fields[col] ?? '';
     return rec;
   },
@@ -813,7 +1034,8 @@ const M365Store = {
       this.siteId = (await this.graph(p)).id;
     }
     const data = {};
-    for (const type of ['dict', 'work', 'dec', 'issues']) {
+    this.missing = [];
+    for (const type of TYPES) {
       const out = [];
       let next = this.listPath(type) + '/items?expand=fields&$top=500';
       try {
@@ -823,6 +1045,7 @@ const M365Store = {
           next = page['@odata.nextLink'] || null;
         }
       } catch (e) {
+        if (e.status === 404 && OPTIONAL_TYPES.includes(type)) { this.missing.push(M365_CONFIG.lists[type]); data[type] = []; continue; }
         if (e.status === 404) throw new Error(`SharePoint list "${M365_CONFIG.lists[type]}" was not found. Run the setup script first.`);
         throw e;
       }
@@ -844,7 +1067,8 @@ const M365Store = {
 
 // ── STATE ──────────────────────────────────────────────────────────────────────
 let Store = LocalStore;
-let state = { dict: [], work: [], dec: [], issues: [] };
+const emptyState = () => Object.fromEntries(TYPES.map(t => [t, []]));
+let state = emptyState();
 let busy = false;
 
 async function reload() {
@@ -858,8 +1082,17 @@ async function act(fn) {
   catch (e) { console.error(e); alert('Could not save: ' + e.message); }
   finally { busy = false; }
 }
-async function createItem(type, item) { const rec = await Store.create(type, item); if (Store !== LocalStore) state[type].push(rec); }
-async function updateItem(type, id, item) { await Store.update(type, id, item); if (Store !== LocalStore) Object.assign(state[type].find(x => sameId(x.id, id)), item); }
+async function createItem(type, item, keepDate = false) {
+  item = { ...item, updated: keepDate && item.updated ? item.updated : today() };
+  if (FIELD_MAP[type].key && !item.key) item.key = 'u-' + type + '-' + Date.now().toString(36);
+  const rec = await Store.create(type, item);
+  if (Store !== LocalStore) state[type].push({ ...rec, updated: rec.updated || item.updated });
+}
+async function updateItem(type, id, item) {
+  item = { ...item, updated: today() };
+  await Store.update(type, id, item);
+  if (Store !== LocalStore) Object.assign(state[type].find(x => sameId(x.id, id)), item);
+}
 async function removeItem(type, id) { await Store.remove(type, id); if (Store !== LocalStore) state[type] = state[type].filter(x => !sameId(x.id, id)); else state = Store.data; }
 
 // ── MODE BANNER + AUTH UI ──────────────────────────────────────────────────────
@@ -881,7 +1114,7 @@ async function doSignIn() {
 }
 async function doSignOut() {
   try { await M365Store.signOut(); } catch (e) {}
-  state = { dict: [], work: [], dec: [], issues: [] };
+  state = emptyState();
   renderAuth(); renderAll();
   setBanner('local', 'Signed out. Sign in with your RTC Microsoft account to view and edit DIG records.');
 }
@@ -889,51 +1122,89 @@ async function loadShared() {
   setBanner('shared', 'Loading DIG records from SharePoint…');
   try {
     await reload();
-    const empty = ['dict', 'work', 'dec'].filter(t => !state[t].length);
+    const missing = M365Store.missing || [];
+    const empty = SEEDED_TYPES.filter(t => !state[t].length && !missing.includes(M365_CONFIG.lists[t]));
     setBanner('shared', `<span>🔗 <strong>Shared mode.</strong> Records are stored in RTC's Microsoft 365 (SharePoint). Everyone signed in sees the same data.</span>` +
-      (empty.length ? ` <button class="btn btn-secondary btn-sm" onclick="loadStarterData()">Load starter data into ${empty.length} empty list${empty.length > 1 ? 's' : ''}</button>` : ''));
+      (empty.length ? ` <button class="btn btn-secondary btn-sm" onclick="loadStarterData()">Load starter data into ${empty.length} empty list${empty.length > 1 ? 's' : ''}</button>` : '') +
+      (missing.length ? ` <span>Alignment lists not set up yet: ${esc(missing.join(', '))}. Re-run the setup script to add them.</span>` : ''));
   } catch (e) {
     setBanner('error', '⚠️ Could not load SharePoint data: ' + esc(e.message));
   }
 }
 async function loadStarterData() {
   await act(async () => {
-    for (const type of ['dict', 'work', 'dec']) {
-      if (state[type].length) continue;
-      for (const seed of SEED[type]) await createItem(type, { ...seed });
+    const missing = M365Store.missing || [];
+    for (const type of SEEDED_TYPES) {
+      if (state[type].length || missing.includes(M365_CONFIG.lists[type])) continue;
+      for (const seed of SEED[type]) await createItem(type, { ...seed }, true);
     }
   });
   await loadShared();
 }
 
-// ── TABS ───────────────────────────────────────────────────────────────────────
+// ── TABS + ROUTING (each board has its own link: dig.bknown.pro/#crosswalk, #programs, …) ──
+const TAB_SLUGS = { hub: 'combined', xw: 'crosswalk', prog: 'programs', chg: 'curriculum', apr: 'program-review',
+                    dict: 'dictionary', work: 'workstreams', dec: 'decisions', issues: 'issues', charter: 'charter' };
+const SLUG_TABS = Object.fromEntries(Object.entries(TAB_SLUGS).map(([t, s]) => [s, t]));
+const TAB_NAMES = { hub: 'Combined', xw: 'Crosswalk', prog: 'Programs', chg: 'Curriculum Changes', apr: 'Program Review Cycle',
+                    dict: 'Data Dictionary', work: 'Workstreams', dec: 'Governance Decisions', issues: 'Data Issue Log', charter: 'Charter & Evidence' };
+let currentTab = 'hub';
 function switchTab(btn, tab) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
+  currentTab = tab;
+  if (location.hash !== '#' + TAB_SLUGS[tab]) history.replaceState(null, '', '#' + TAB_SLUGS[tab]);
   renderTab(tab);
 }
 function goTab(tab) {
   const btn = [...document.querySelectorAll('.tab-btn')].find(b => (b.getAttribute('onclick') || '').includes(`'${tab}'`));
-  if (btn) switchTab(btn, tab);
+  switchTab(btn, tab);
   window.scrollTo(0, 0);
 }
+function routeFromHash() { goTab(SLUG_TABS[(location.hash || '').slice(1)] || 'hub'); }
+window.addEventListener('hashchange', routeFromHash);
 function renderTab(tab) {
-  if (tab === 'dict')    renderDict();
-  if (tab === 'work')    renderWork();
-  if (tab === 'dec')     renderDec();
-  if (tab === 'issues')  renderIssues();
-  if (tab === 'charter') renderCharter();
+  ({ hub: renderHub, xw: renderXw, prog: renderProg, chg: renderChg, apr: renderApr,
+     dict: renderDict, work: renderWork, dec: renderDec, issues: renderIssues, charter: renderCharter }[tab] || (() => {}))();
 }
-function renderAll() { updateCounts(); renderDict(); renderWork(); renderDec(); renderIssues(); renderCharter(); }
+function renderAll() {
+  updateCounts(); renderDict(); renderWork(); renderDec(); renderIssues(); renderCharter();
+  renderXw(); renderProg(); renderChg(); renderApr(); renderHub();
+}
 function updateCounts() {
   document.getElementById('count-dict').textContent   = state.dict.length;
   document.getElementById('count-work').textContent   = state.work.length;
   document.getElementById('count-dec').textContent    = state.dec.filter(d => d.status !== 'Resolved').length;
   document.getElementById('count-issues').textContent = state.issues.filter(i => i.status !== 'Resolved').length;
   document.getElementById('count-charter').textContent = evidenceRows().filter(r => r.status === 'Gap').length + ' gaps';
+  document.getElementById('count-xw').textContent   = byRole(state.xw, 'xw').filter(x => x.status !== 'Resolved').length;
+  document.getElementById('count-prog').textContent = byRole(state.prog, 'prog').length;
+  document.getElementById('count-chg').textContent  = byRole(state.chg, 'chg').filter(c => c.stage !== 'Complete').length;
+  document.getElementById('count-apr').textContent  = byRole(state.apr, 'apr').filter(a => a.status !== 'Complete').length;
+  document.getElementById('count-hub').textContent  = openItems().length;
 }
+
+// ── ROLES ("Viewing as") ─────────────────────────────────────────────────────
+let currentRole = '';
+try { currentRole = localStorage.getItem('dig_role') || ''; } catch (e) {}
+function setRole(r) {
+  currentRole = r;
+  try { localStorage.setItem('dig_role', r); } catch (e) {}
+  updateCounts(); renderTab(currentTab);
+}
+// Roles for each record. DIG-native records are DIG work; decisions owned by curriculum bodies also reach Curriculum.
+function rolesOf(type, x) {
+  if (x.roles) return String(x.roles).split(',').map(r => r.trim()).filter(Boolean);
+  if (type === 'dec') return /curricul|academic/i.test(x.owner || '') ? ['DIG', 'Curriculum'] : ['DIG'];
+  if (type === 'issues') return ['DIG', 'Program Review'];
+  return ['DIG'];
+}
+const byRole = (arr, type) => !currentRole ? arr : arr.filter(x => rolesOf(type, x).includes(currentRole));
+const roleTags = (type, x) => `<span class="role-tags">${rolesOf(type, x).map(r => `<span class="badge badge-gray">${esc(r)}</span>`).join('')}</span>`;
+const roleCheckboxes = sel => ROLES.map(r => `<label style="margin-right:12px;font-size:13px"><input type="checkbox" class="f-role" value="${esc(r)}" ${sel.includes(r) ? 'checked' : ''}> ${esc(r)}</label>`).join('');
+const readRoles = () => [...document.querySelectorAll('.f-role:checked')].map(c => c.value).join(',');
 
 // ── BADGES ────────────────────────────────────────────────────────────────────
 function statusBadge(s) {
@@ -1171,6 +1442,357 @@ function renderCharter() {
   document.getElementById('charter-evidence').innerHTML = charterTable(evidenceRows(), 'Evidence artifact', 'item');
 }
 
+// ── CROSS-BOARD REFERENCES ────────────────────────────────────────────────────
+const LABEL = { dict: x => x.term, work: x => x.name, dec: x => x.decision, apr: x => x.item, chg: x => x.title, xw: x => x.finding, prog: x => x.name };
+function findByKey(key) {
+  for (const type of ['dict', 'work', 'dec', 'apr', 'chg', 'xw', 'prog']) {
+    const rec = state[type].find(x => x.key === key);
+    if (rec) return { type, rec };
+  }
+  return null;
+}
+// A reference is "blocking" when it points at an unresolved decision or a definition still OPEN for DIG review.
+function refBlocked(r) {
+  if (!r) return false;
+  if (r.type === 'dec') return r.rec.status !== 'Resolved';
+  if (r.type === 'dict') return r.rec.lastReview === 'OPEN';
+  if (r.type === 'work') return r.rec.status === 'Blocked';
+  return false;
+}
+const splitRefs = v => String(v || '').split(',').map(k => k.trim()).filter(Boolean);
+function refChips(v) {
+  const keys = splitRefs(v);
+  if (!keys.length) return '<span class="meta">—</span>';
+  return keys.map(k => {
+    const r = findByKey(k);
+    if (!r) return `<span class="ref-chip missing" title="Not found on this site">${esc(k)}</span>`;
+    const label = LABEL[r.type](r.rec) || k;
+    const short = label.length > 34 ? label.slice(0, 32) + '…' : label;
+    const st = r.rec.status || r.rec.stage || '';
+    return `<button class="ref-chip ${refBlocked(r) ? 'blocked' : ''}" title="${esc(TAB_NAMES[r.type])}: ${esc(label)}${st ? ' (' + esc(st) + ')' : ''}" onclick="goTab('${r.type}')">${esc(short)}</button>`;
+  }).join('');
+}
+function refSelect(id, types, selected) {
+  const sel = new Set(splitRefs(selected));
+  const groups = types.map(t => `<optgroup label="${esc(TAB_NAMES[t])}">${state[t].filter(x => x.key).map(x =>
+    `<option value="${esc(x.key)}" ${sel.has(x.key) ? 'selected' : ''}>${esc((LABEL[t](x) || '').slice(0, 90))}</option>`).join('')}</optgroup>`).join('');
+  return `<select class="form-select" id="${id}" multiple size="7">${groups}</select>
+    <div class="meta" style="font-size:11px;margin-top:3px">Ctrl/Cmd-click to pick more than one.</div>`;
+}
+const readMulti = id => [...(document.getElementById(id)?.selectedOptions || [])].map(o => o.value).join(',');
+const mentions = (text, name) => !!name && String(text || '').toLowerCase().includes(String(name).toLowerCase());
+
+// ── CROSSWALK ─────────────────────────────────────────────────────────────────
+function renderXw() {
+  const q = (document.getElementById('xw-search').value || '').toLowerCase();
+  const fs = document.getElementById('xw-filter-status').value;
+  const rows = byRole(state.xw, 'xw').filter(x =>
+    (!q || [x.finding, x.scope, x.nextAction, x.owner].some(f => (f || '').toLowerCase().includes(q))) && (!fs || x.status === fs));
+  const wrap = document.getElementById('xw-table');
+  if (!rows.length) { wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🔗</div><div class="empty-label">No findings match.</div></div>`; return; }
+  wrap.innerHTML = `<div class="table-scroll"><table class="data-table">
+    <thead><tr><th>Finding</th><th>DIG</th><th>Program Review</th><th>Curriculum</th><th>Parties</th><th>Status</th><th>Next step</th><th></th></tr></thead>
+    <tbody>${rows.map(x => `
+      <tr>
+        <td style="max-width:300px"><strong>${esc(x.finding)}</strong><div class="meta" style="font-size:11px;margin-top:3px">${esc(x.scope)}</div></td>
+        <td style="max-width:170px">${refChips(x.digRef)}</td>
+        <td style="max-width:170px">${refChips(x.aprRef)}</td>
+        <td style="max-width:170px">${refChips(x.chgRef)}</td>
+        <td>${roleTags('xw', x)}</td>
+        <td>${statusBadge(x.status)}<div class="meta" style="font-size:11px;margin-top:3px">${esc(x.updated || '')}</div></td>
+        <td style="max-width:220px;font-size:12px">${esc(x.nextAction)}${x.owner ? `<div class="meta" style="font-size:11px">Owner: ${esc(x.owner)}</div>` : ''}</td>
+        <td><button class="btn btn-secondary btn-sm" onclick="editEntry('xw','${esc(x.id)}')">Update</button></td>
+      </tr>`).join('')}</tbody></table></div>`;
+}
+
+// ── PROGRAMS ──────────────────────────────────────────────────────────────────
+const PROG_STATUSES = ['Not verified', 'Discrepancies found', 'Verified'];
+function progLinks(p) {
+  const xs = state.xw.filter(x => mentions(x.scope, p.name)).length;
+  const cs = state.chg.filter(c => mentions(c.program, p.name)).length;
+  return (xs || cs) ? `<span class="badge badge-blue">${xs} finding${xs === 1 ? '' : 's'} · ${cs} change${cs === 1 ? '' : 's'}</span>` : '<span class="meta">—</span>';
+}
+function renderProg() {
+  const sel = document.getElementById('prog-filter-area');
+  const areas = [...new Set(state.prog.map(p => p.area).filter(Boolean))].sort();
+  if (sel.options.length - 1 !== areas.length) {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">All Areas</option>' + areas.map(a => `<option ${a === cur ? 'selected' : ''}>${esc(a)}</option>`).join('');
+  }
+  const q = (document.getElementById('prog-search').value || '').toLowerCase();
+  const fa = sel.value, fs = document.getElementById('prog-filter-status').value;
+  const all = byRole(state.prog, 'prog');
+  const rows = all.filter(p => (!q || [p.name, p.area, p.credentials, p.flags, p.notes].some(f => (f || '').toLowerCase().includes(q))) &&
+    (!fa || p.area === fa) && (!fs || p.status === fs));
+  document.getElementById('prog-subtitle').textContent =
+    `${all.length} programs across ${areas.length} areas, as published on the RTC Program Mapping site. Verify each against the catalog and ctcLink.`;
+  const n = s => all.filter(p => p.status === s).length;
+  document.getElementById('prog-summary').innerHTML = `
+    <div class="summary-card"><div class="summary-num">${all.length}</div><div class="summary-label">Programs</div></div>
+    <div class="summary-card amber"><div class="summary-num">${n('Not verified')}</div><div class="summary-label">Not verified yet</div></div>
+    <div class="summary-card red"><div class="summary-num">${n('Discrepancies found')}</div><div class="summary-label">Discrepancies found</div></div>
+    <div class="summary-card green"><div class="summary-num">${n('Verified')}</div><div class="summary-label">Verified</div></div>`;
+  const wrap = document.getElementById('prog-table');
+  if (!rows.length) { wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🏫</div><div class="empty-label">No programs match.</div></div>`; return; }
+  wrap.innerHTML = `<div class="table-scroll"><table class="data-table">
+    <thead><tr><th>Program</th><th>Area</th><th>Credentials / length</th><th>Courses</th><th>Gen ed cr.</th><th>Map notes</th><th>Linked</th><th>Status</th><th></th></tr></thead>
+    <tbody>${rows.map(p => `
+      <tr>
+        <td style="max-width:220px"><strong>${esc(p.name)}</strong>${p.source ? `<div><a class="ev-link" href="${esc(p.source)}" target="_blank" rel="noopener">Program map ↗</a></div>` : ''}</td>
+        <td class="meta">${esc(p.area)}</td>
+        <td style="max-width:260px;font-size:12px">${esc(p.credentials)}</td>
+        <td class="mono">${esc(p.courses)}</td>
+        <td class="mono">${esc(p.genEd)}</td>
+        <td style="max-width:220px;font-size:11px;color:var(--text-sm)">${esc(p.flags)}${p.notes ? `<div style="margin-top:4px">📝 ${esc(p.notes)}</div>` : ''}</td>
+        <td>${progLinks(p)}</td>
+        <td>${statusBadge(p.status)}</td>
+        <td><button class="btn btn-secondary btn-sm" onclick="editEntry('prog','${esc(p.id)}')">Update</button></td>
+      </tr>`).join('')}</tbody></table></div>`;
+}
+
+// ── CURRICULUM CHANGES ────────────────────────────────────────────────────────
+function pipeBar(stage) {
+  const i = Math.max(0, CHG_STAGES.indexOf(stage));
+  const last = CHG_STAGES.length - 1;
+  return `<div class="pipe" title="Step ${i + 1} of ${CHG_STAGES.length}">${CHG_STAGES.slice(0, last).map((s, j) =>
+    `<span class="${i === last || j < i ? 'done' : j === i ? 'now' : ''}" title="${esc(s)}"></span>`).join('')}</div>
+    <div class="pipe-label">${esc(stage || CHG_STAGES[0])}</div>`;
+}
+function advanceChange(id) {
+  const c = state.chg.find(x => sameId(x.id, id));
+  if (!c) return;
+  const i = CHG_STAGES.indexOf(c.stage);
+  if (i >= CHG_STAGES.length - 1) return;
+  act(async () => { await updateItem('chg', id, { stage: CHG_STAGES[i + 1] }); renderAll(); });
+}
+function renderChg() {
+  const sel = document.getElementById('chg-filter-stage');
+  if (sel.options.length === 1) sel.insertAdjacentHTML('beforeend', CHG_STAGES.map(s => `<option>${esc(s)}</option>`).join(''));
+  const q = (document.getElementById('chg-search').value || '').toLowerCase();
+  const fs = sel.value;
+  const all = byRole(state.chg, 'chg');
+  const rows = all.filter(c => (!q || [c.title, c.program, c.ctype, c.owner, c.notes].some(f => (f || '').toLowerCase().includes(q))) && (!fs || c.stage === fs));
+  const done = all.filter(c => c.stage === 'Complete').length;
+  const approval = all.filter(c => CHG_STAGES.indexOf(c.stage) >= 3 && CHG_STAGES.indexOf(c.stage) <= 5).length;
+  const publish = all.filter(c => CHG_STAGES.indexOf(c.stage) >= 6 && c.stage !== 'Complete').length;
+  document.getElementById('chg-summary').innerHTML = `
+    <div class="summary-card amber"><div class="summary-num">${all.length - done - approval - publish}</div><div class="summary-label">Preparing (agenda → outline)</div></div>
+    <div class="summary-card"><div class="summary-num">${approval}</div><div class="summary-label">In approval (Curriculog → Aculog)</div></div>
+    <div class="summary-card"><div class="summary-num">${publish}</div><div class="summary-label">Publishing (ctcLink → website)</div></div>
+    <div class="summary-card green"><div class="summary-num">${done}</div><div class="summary-label">Complete</div></div>`;
+  const wrap = document.getElementById('chg-table');
+  if (!rows.length) { wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">🛠️</div><div class="empty-label">No changes match.</div></div>`; return; }
+  wrap.innerHTML = `<div class="table-scroll"><table class="data-table">
+    <thead><tr><th>Change</th><th>Program</th><th>Type</th><th>Progress</th><th>Owner</th><th>Parties</th><th>Updated</th><th></th></tr></thead>
+    <tbody>${rows.map(c => `
+      <tr>
+        <td style="max-width:280px"><strong>${esc(c.title)}</strong>${c.notes ? `<div class="meta" style="font-size:11px;margin-top:3px">${esc(c.notes)}</div>` : ''}</td>
+        <td class="meta" style="max-width:160px">${esc(c.program)}</td>
+        <td class="meta">${esc(c.ctype)}</td>
+        <td>${pipeBar(c.stage)}</td>
+        <td class="meta">${esc(c.owner)}${c.due ? `<div>Due ${esc(c.due)}</div>` : ''}</td>
+        <td>${roleTags('chg', c)}</td>
+        <td class="meta">${esc(c.updated || '')}</td>
+        <td style="white-space:nowrap">
+          ${c.stage !== 'Complete' ? `<button class="btn btn-primary btn-sm" onclick="advanceChange('${esc(c.id)}')">Next step →</button>` : ''}
+          <button class="btn btn-secondary btn-sm" onclick="editEntry('chg','${esc(c.id)}')">Edit</button>
+        </td>
+      </tr>`).join('')}</tbody></table></div>`;
+}
+
+// ── PROGRAM REVIEW CYCLE ──────────────────────────────────────────────────────
+const aprBlocked = a => splitRefs(a.depends).some(k => refBlocked(findByKey(k)));
+function renderApr() {
+  const fs = document.getElementById('apr-filter-status').value;
+  const all = byRole(state.apr, 'apr');
+  const rows = all.filter(a => !fs || a.status === fs);
+  const blocked = all.filter(a => a.status !== 'Complete' && aprBlocked(a)).length;
+  const n = s => all.filter(a => a.status === s).length;
+  document.getElementById('apr-summary').innerHTML = `
+    <div class="summary-card red"><div class="summary-num">${blocked}</div><div class="summary-label">Waiting on a DIG definition or decision</div></div>
+    <div class="summary-card"><div class="summary-num">${n('In Progress')}</div><div class="summary-label">In progress</div></div>
+    <div class="summary-card amber"><div class="summary-num">${n('Not Started')}</div><div class="summary-label">Not started</div></div>
+    <div class="summary-card green"><div class="summary-num">${n('Complete')}</div><div class="summary-label">Complete</div></div>`;
+  const cycles = [...new Set(['Spring', 'Fall', 'Action items', ...rows.map(a => a.cycle).filter(Boolean)])];
+  document.getElementById('apr-cols').innerHTML = cycles.map(cy => {
+    const items = rows.filter(a => (a.cycle || 'Action items') === cy);
+    return `<div class="kanban-col">
+      <div class="kanban-col-header"><span>${esc(cy === 'Spring' ? 'Spring review' : cy === 'Fall' ? 'Fall review' : cy)}</span>
+        <span class="tab-count" style="background:var(--border);color:var(--gray)">${items.length}</span></div>
+      ${items.map(a => `
+        <div class="kanban-card ${aprBlocked(a) && a.status !== 'Complete' ? 'phase-1' : a.status === 'Complete' ? 'phase-3' : ''}" onclick="if(event.target.tagName!=='BUTTON') editEntry('apr','${esc(a.id)}')">
+          <div class="kanban-card-title">${esc(a.item)}</div>
+          <div class="kanban-card-domain">${esc(a.category)}${a.owner ? ' · ' + esc(a.owner) : ''}</div>
+          <div style="margin-top:6px">${statusBadge(a.status)}</div>
+          ${splitRefs(a.depends).length ? `<div style="margin-top:6px;font-size:11px;color:var(--gray)">Depends on: ${refChips(a.depends)}</div>` : ''}
+        </div>`).join('') || '<div class="meta" style="font-size:12px">Nothing here.</div>'}
+    </div>`;
+  }).join('');
+}
+
+// ── COMBINED (HUB) ────────────────────────────────────────────────────────────
+function openItems() {
+  const out = [];
+  const push = (type, x, title, status, next) => out.push({ type, id: x.id, title, status, next: next || '', roles: rolesOf(type, x), updated: x.updated || x.dateSubmitted || '' });
+  state.xw.filter(x => x.status !== 'Resolved').forEach(x => push('xw', x, x.finding, x.status, x.nextAction));
+  state.chg.filter(c => c.stage !== 'Complete').forEach(c => push('chg', c, c.title, c.stage, c.owner ? 'Owner: ' + c.owner : ''));
+  state.apr.filter(a => a.status !== 'Complete').forEach(a => push('apr', a, a.item, aprBlocked(a) ? 'Waiting on DIG' : a.status, a.owner ? 'Owner: ' + a.owner : ''));
+  state.dec.filter(d => d.status !== 'Resolved').forEach(d => push('dec', d, d.decision, d.status, 'Owner: ' + (d.owner || '—')));
+  state.issues.filter(i => i.status !== 'Resolved').forEach(i => push('issues', i, (i.metric ? i.metric + ': ' : '') + i.description, i.status, i.program));
+  state.prog.filter(p => p.status === 'Discrepancies found').forEach(p => push('prog', p, p.name, p.status, p.notes));
+  state.work.filter(w => w.status === 'In Progress' || w.status === 'Blocked').forEach(w => push('work', w, w.name, w.status, w.owner ? 'Owner: ' + w.owner : ''));
+  return (currentRole ? out.filter(o => o.roles.includes(currentRole)) : out)
+    .sort((a, b) => String(b.updated).localeCompare(String(a.updated)));
+}
+function renderHub() {
+  const prog = byRole(state.prog, 'prog'), xw = byRole(state.xw, 'xw'), chg = byRole(state.chg, 'chg'), apr = byRole(state.apr, 'apr');
+  const items = openItems();
+  document.getElementById('hub-subtitle').textContent = currentRole
+    ? `Showing what ${currentRole} needs to see. Every board funnels here.`
+    : 'Every board funnels here: programs surface findings, the crosswalk routes them, and each party\'s open work shows up in one place.';
+  const card = (tab, n, label, cls = '') => `<div class="summary-card ${cls}" onclick="goTab('${tab}')"><div class="summary-num">${n}</div><div class="summary-label">${label}</div></div>`;
+  document.getElementById('hub-funnel').innerHTML =
+    card('prog', prog.filter(p => p.status !== 'Verified').length, `Programs not yet verified (of ${prog.length})`, 'amber') +
+    card('xw', xw.filter(x => x.status !== 'Resolved').length, 'Open crosswalk findings', 'red') +
+    card('chg', chg.filter(c => c.stage !== 'Complete').length, 'Curriculum changes in motion') +
+    card('apr', apr.filter(a => a.status !== 'Complete' && aprBlocked(a)).length, 'Program Review items waiting on DIG', 'red') +
+    `<div class="arrow">➜</div>` +
+    `<div class="summary-card hub"><div class="summary-num">${items.length}</div><div class="summary-label">Open items on this combined board</div></div>`;
+  const lanes = currentRole ? [currentRole] : ROLES;
+  document.getElementById('hub-lanes').classList.toggle('one', lanes.length === 1);
+  document.getElementById('hub-lanes').innerHTML = lanes.map(r => {
+    const mine = openItems().filter(o => o.roles.includes(r));
+    return `<div class="lane"><div class="lane-title">${esc(r)} <span class="tab-count">${mine.length}</span></div>
+      <ul>${mine.slice(0, 8).map(o => `<li><span><button class="ev-link" onclick="goTab('${o.type}')">${esc(TAB_NAMES[o.type])}</button> · ${esc(o.title.length > 70 ? o.title.slice(0, 68) + '…' : o.title)}</span>${statusBadge(o.status)}</li>`).join('') || '<li class="meta">Nothing open.</li>'}</ul>
+      ${mine.length > 8 ? `<div class="meta" style="font-size:11px;margin-top:6px">+ ${mine.length - 8} more in the table below</div>` : ''}</div>`;
+  }).join('');
+  const wrap = document.getElementById('hub-table');
+  if (!items.length) { wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-label">Nothing open.</div></div>`; return; }
+  wrap.innerHTML = `<div class="table-scroll"><table class="data-table">
+    <thead><tr><th>Board</th><th>Item</th><th>Status</th><th>Next / owner</th><th>Parties</th><th>Updated</th></tr></thead>
+    <tbody>${items.map(o => `
+      <tr>
+        <td><button class="ev-link" onclick="goTab('${o.type}')">${esc(TAB_NAMES[o.type])}</button></td>
+        <td style="max-width:360px">${esc(o.title)}</td>
+        <td>${statusBadge(o.status)}</td>
+        <td class="meta" style="max-width:240px">${esc(o.next)}</td>
+        <td>${o.roles.map(r => `<span class="badge badge-gray">${esc(r)}</span>`).join(' ')}</td>
+        <td class="meta">${esc(o.updated)}</td>
+      </tr>`).join('')}</tbody></table></div>`;
+}
+
+// ── UPDATE DIGEST ("Send update") ─────────────────────────────────────────────
+function openDigest() {
+  currentModal = { type: 'digest', id: null };
+  const since = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
+  document.getElementById('modal-title').textContent = 'Send an update';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">For</label>
+        <select class="form-select" id="dg-role" onchange="buildDigest()"><option value="">All parties</option>${ROLES.map(r => `<option ${r === currentRole ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></div>
+      <div class="form-group"><label class="form-label">Changes since</label><input class="form-input" type="date" id="dg-since" value="${since}" onchange="buildDigest()"></div>
+    </div>
+    <div class="form-group"><textarea class="form-textarea digest-box" id="dg-text"></textarea></div>
+    <div class="meta" style="font-size:11px" id="dg-note"></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+      <button class="btn btn-secondary" onclick="copyDigest()">Copy</button>
+      <button class="btn btn-primary" onclick="emailDigest()">Open in email</button>
+    </div>`;
+  document.getElementById('modal-overlay').classList.add('open');
+  buildDigest();
+}
+function buildDigest() {
+  const role = document.getElementById('dg-role').value;
+  const since = document.getElementById('dg-since').value || '0000';
+  const prevRole = currentRole; currentRole = role;
+  const lines = [];
+  lines.push(`Alignment update for ${role || 'all parties'} (DIG, Program Review, Curriculum)`);
+  lines.push(`Generated ${today()}. Changes since ${since}.`, '');
+  const changed = [];
+  const PER_BOARD = 5;
+  for (const type of ['xw', 'chg', 'apr', 'prog', 'dec', 'issues', 'work', 'dict']) {
+    const recs = byRole(state[type], type).filter(x => (x.updated || x.dateSubmitted || '') >= since)
+      .sort((a, b) => String(b.updated || b.dateSubmitted).localeCompare(String(a.updated || a.dateSubmitted)));
+    if (!recs.length) continue;
+    changed.push(`${TAB_NAMES[type]} (${recs.length})`);
+    recs.slice(0, PER_BOARD).forEach(x => {
+      const label = type === 'issues' ? (x.metric || x.description) : LABEL[type](x);
+      const st = x.stage || x.status || '';
+      changed.push(`  - ${String(label || '').slice(0, 120)}${st ? ' — ' + st : ''} (${x.updated || x.dateSubmitted})`);
+    });
+    if (recs.length > PER_BOARD) changed.push(`  - …and ${recs.length - PER_BOARD} more on the ${TAB_NAMES[type]} board`);
+  }
+  lines.push('WHAT CHANGED', ...(changed.length ? changed : ['- No changes recorded in this period.']), '');
+  const blocking = byRole(state.dec, 'dec').filter(d => d.status !== 'Resolved' && (d.priority || '').includes('🔴'));
+  const waiting = byRole(state.apr, 'apr').filter(a => a.status !== 'Complete' && aprBlocked(a));
+  lines.push('STILL BLOCKING');
+  lines.push(...(blocking.length ? blocking.map(d => `- Decision: ${d.decision} (owner: ${d.owner || '—'})`) : ['- No blocking decisions.']));
+  if (waiting.length) lines.push(`- ${waiting.length} Program Review data point${waiting.length === 1 ? '' : 's'} waiting on these definitions/decisions.`);
+  lines.push('');
+  const open = openItems();
+  const byBoard = {};
+  open.forEach(o => { byBoard[TAB_NAMES[o.type]] = (byBoard[TAB_NAMES[o.type]] || 0) + 1; });
+  lines.push('OPEN ITEMS BY BOARD', ...Object.entries(byBoard).map(([b, n]) => `- ${b}: ${n}`), '');
+  lines.push(`View the combined board: ${location.origin}${location.pathname}#combined`);
+  currentRole = prevRole;
+  document.getElementById('dg-text').value = lines.join('\n');
+  document.getElementById('dg-note').textContent = Store === LocalStore
+    ? 'Local preview mode: this update reflects changes made in this browser only.'
+    : 'Shared mode: this update reflects everyone\'s changes in SharePoint.';
+}
+function copyDigest() {
+  const t = document.getElementById('dg-text');
+  t.select();
+  (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).catch(() => document.execCommand('copy'));
+}
+function emailDigest() {
+  const role = document.getElementById('dg-role').value || 'all parties';
+  let body = document.getElementById('dg-text').value;
+  if (body.length > 1800) body = body.slice(0, 1800) + '\n…(truncated — use Copy for the full update)';
+  location.href = `mailto:?subject=${encodeURIComponent('Alignment update: ' + role + ' (' + today() + ')')}&body=${encodeURIComponent(body)}`;
+}
+
+// ── EXPORT / IMPORT (private data stays out of the public page code) ──────────
+function exportData() {
+  const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), mode: Store.mode, data: state }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `alignment-data-${today()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function importData(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  file.text().then(txt => {
+    let doc;
+    try { doc = JSON.parse(txt); } catch (e) { alert('That file is not valid JSON.'); return; }
+    const data = doc.data || doc;
+    const plan = [];
+    for (const type of TYPES) {
+      if (!Array.isArray(data[type])) continue;
+      for (const rec of data[type]) {
+        const { id, ...fields } = rec;
+        const existing = fields.key ? state[type].find(x => x.key === fields.key) : null;
+        plan.push({ type, existing, fields });
+      }
+    }
+    if (!plan.length) { alert('No records found in that file.'); return; }
+    const upd = plan.filter(p => p.existing).length;
+    if (!confirm(`Import ${plan.length} records (${plan.length - upd} new, ${upd} updates to existing)?`)) return;
+    act(async () => {
+      for (const p of plan) {
+        if (Store !== LocalStore && OPTIONAL_TYPES.includes(p.type) && (M365Store.missing || []).includes(M365_CONFIG.lists[p.type])) continue;
+        if (p.existing) await updateItem(p.type, p.existing.id, p.fields);
+        else await createItem(p.type, p.fields);
+      }
+      if (Store === LocalStore) state = Store.data;
+      renderAll();
+    });
+  });
+}
+
 // ── MODAL FORMS ───────────────────────────────────────────────────────────────
 let currentModal = { type: null, id: null };
 
@@ -1258,6 +1880,97 @@ function openModal(type, id = null) {
         <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
         <button class="btn btn-primary" onclick="saveIssue()">Save Update</button>
       </div>`;
+  } else if (type === 'xw') {
+    title.textContent = item ? 'Update Finding' : 'Add Finding';
+    body.innerHTML = `
+      <div class="form-group"><label class="form-label">Finding *</label><textarea class="form-textarea" id="f-finding" style="min-height:60px">${v('finding')}</textarea></div>
+      <div class="form-group"><label class="form-label">Programs affected</label><input class="form-input" id="f-scope" value="${v('scope')}" placeholder="e.g. All programs, or a program name from the Programs board"></div>
+      <div class="form-group"><label class="form-label">DIG (workstreams, decisions, definitions)</label>${refSelect('f-dig', ['work', 'dec', 'dict'], raw('digRef'))}</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Program Review items</label>${refSelect('f-apr', ['apr'], raw('aprRef'))}</div>
+        <div class="form-group"><label class="form-label">Curriculum changes</label>${refSelect('f-chg', ['chg'], raw('chgRef'))}</div>
+      </div>
+      <div class="form-group"><label class="form-label">Parties involved</label><div>${roleCheckboxes(rolesOf('xw', item || { roles: currentRole || ROLES.join(',') }))}</div></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="f-status">${['Open', 'In Progress', 'Resolved'].map(s => `<option ${raw('status') === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+        <div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="f-owner" value="${v('owner')}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Next step</label><textarea class="form-textarea" id="f-next" style="min-height:50px">${v('nextAction')}</textarea></div>
+      <div class="form-actions">
+        ${item ? `<button class="btn btn-danger" style="margin-right:auto" onclick="deleteEntry('xw','${esc(item.id)}')">Delete</button>` : ''}
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveXw()">Save</button>
+      </div>`;
+  } else if (type === 'prog') {
+    title.textContent = item ? 'Update Program' : 'Add Program';
+    body.innerHTML = `
+      <div class="form-group"><label class="form-label">Program *</label><input class="form-input" id="f-name" value="${v('name')}"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Area</label><input class="form-input" id="f-area" value="${v('area')}"></div>
+        <div class="form-group"><label class="form-label">Verification status</label>
+          <select class="form-select" id="f-status">${PROG_STATUSES.map(s => `<option ${raw('status') === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Credentials / length</label><textarea class="form-textarea" id="f-cred" style="min-height:50px">${v('credentials')}</textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Courses listed</label><input class="form-input" id="f-courses" value="${v('courses')}"></div>
+        <div class="form-group"><label class="form-label">Gen ed credits on map</label><input class="form-input" id="f-gened" value="${v('genEd')}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Program map link</label><input class="form-input" id="f-source" value="${v('source')}"></div>
+      <div class="form-group"><label class="form-label">Owner (who verifies)</label><input class="form-input" id="f-owner" value="${v('owner')}"></div>
+      <div class="form-group"><label class="form-label">Verification notes</label><textarea class="form-textarea" id="f-notes" style="min-height:50px" placeholder="What differs from the catalog / ctcLink?">${v('notes')}</textarea></div>
+      <div class="form-group"><label class="form-label">Parties involved</label><div>${roleCheckboxes(rolesOf('prog', item || { roles: 'Curriculum,Program Review' }))}</div></div>
+      <div class="form-actions">
+        ${item ? `<button class="btn btn-danger" style="margin-right:auto" onclick="deleteEntry('prog','${esc(item.id)}')">Delete</button>` : ''}
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveProg()">Save</button>
+      </div>`;
+  } else if (type === 'chg') {
+    title.textContent = item ? 'Edit Curriculum Change' : 'Add Curriculum Change';
+    const progNames = [...new Set(state.prog.map(p => p.name))].sort();
+    body.innerHTML = `
+      <div class="form-group"><label class="form-label">Change *</label><textarea class="form-textarea" id="f-title" style="min-height:50px">${v('title')}</textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Program</label><input class="form-input" id="f-program" list="prog-names" value="${v('program')}">
+          <datalist id="prog-names">${progNames.map(n => `<option value="${esc(n)}">`).join('')}<option value="All programs"></datalist></div>
+        <div class="form-group"><label class="form-label">Type</label>
+          <select class="form-select" id="f-ctype">${['New course', 'Course revision', 'Retitle / description', 'Prerequisite', 'Program revision', 'Gen ed', 'Public information', 'Inactivation / teach-out'].map(t => `<option ${raw('ctype') === t ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Current step</label>
+          <select class="form-select" id="f-stage">${CHG_STAGES.map(s => `<option ${raw('stage') === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></div>
+        <div class="form-group"><label class="form-label">Target date</label><input class="form-input" type="date" id="f-due" value="${v('due')}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="f-owner" value="${v('owner')}"></div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="f-notes" style="min-height:50px">${v('notes')}</textarea></div>
+      <div class="form-group"><label class="form-label">Parties involved</label><div>${roleCheckboxes(rolesOf('chg', item || { roles: 'Curriculum' }))}</div></div>
+      <div class="form-actions">
+        ${item ? `<button class="btn btn-danger" style="margin-right:auto" onclick="deleteEntry('chg','${esc(item.id)}')">Delete</button>` : ''}
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveChg()">Save</button>
+      </div>`;
+  } else if (type === 'apr') {
+    title.textContent = item ? 'Update Program Review Item' : 'Add Program Review Item';
+    body.innerHTML = `
+      <div class="form-group"><label class="form-label">Item *</label><input class="form-input" id="f-item" value="${v('item')}"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Cycle</label>
+          <select class="form-select" id="f-cycle">${['Spring', 'Fall', 'Action items'].map(c => `<option ${raw('cycle') === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+        <div class="form-group"><label class="form-label">Category</label><input class="form-input" id="f-category" value="${v('category')}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Depends on (DIG definitions, decisions, workstreams)</label>${refSelect('f-depends', ['dict', 'dec', 'work'], raw('depends'))}</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="f-status">${WS_STATUSES.map(s => `<option ${raw('status') === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+        <div class="form-group"><label class="form-label">Owner</label><input class="form-input" id="f-owner" value="${v('owner')}"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="f-notes" style="min-height:50px">${v('notes')}</textarea></div>
+      <div class="form-group"><label class="form-label">Parties involved</label><div>${roleCheckboxes(rolesOf('apr', item || { roles: 'Program Review,DIG' }))}</div></div>
+      <div class="form-actions">
+        ${item ? `<button class="btn btn-danger" style="margin-right:auto" onclick="deleteEntry('apr','${esc(item.id)}')">Delete</button>` : ''}
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveApr()">Save</button>
+      </div>`;
   }
   overlay.classList.add('open');
 }
@@ -1305,8 +2018,32 @@ function saveIssue() {
   saveEntry('issues', item);
 }
 
+function saveXw() {
+  const item = { finding: g('f-finding'), scope: g('f-scope'), digRef: readMulti('f-dig'), aprRef: readMulti('f-apr'), chgRef: readMulti('f-chg'),
+                 roles: readRoles(), status: g('f-status'), owner: g('f-owner'), nextAction: g('f-next') };
+  if (!item.finding) { alert('Describe the finding.'); return; }
+  saveEntry('xw', item);
+}
+function saveProg() {
+  const item = { name: g('f-name'), area: g('f-area'), status: g('f-status'), credentials: g('f-cred'), courses: g('f-courses'), genEd: g('f-gened'),
+                 source: g('f-source'), owner: g('f-owner'), notes: g('f-notes'), roles: readRoles() };
+  if (!item.name) { alert('Program name is required.'); return; }
+  saveEntry('prog', item);
+}
+function saveChg() {
+  const item = { title: g('f-title'), program: g('f-program'), ctype: g('f-ctype'), stage: g('f-stage'), due: g('f-due'), owner: g('f-owner'), notes: g('f-notes'), roles: readRoles() };
+  if (!item.title) { alert('Describe the change.'); return; }
+  saveEntry('chg', item);
+}
+function saveApr() {
+  const item = { item: g('f-item'), cycle: g('f-cycle'), category: g('f-category'), depends: readMulti('f-depends'), status: g('f-status'), owner: g('f-owner'), notes: g('f-notes'), roles: readRoles() };
+  if (!item.item) { alert('Item name is required.'); return; }
+  saveEntry('apr', item);
+}
+
 // ── INIT ───────────────────────────────────────────────────────────────────────
 (async function init() {
+  document.getElementById('role-filter').value = currentRole;
   document.getElementById('dict-filter-domain').insertAdjacentHTML('beforeend', DOMAINS.map(d => `<option>${esc(d)}</option>`).join(''));
   if (m365Configured()) {
     Store = M365Store;
@@ -1321,8 +2058,9 @@ function saveIssue() {
     }
   } else {
     await reload();
-    setBanner('local', '<span>💻 <strong>Local preview mode.</strong> Changes are saved only in this browser and are not shared with other DIG members. Shared storage switches on once RTC\'s Microsoft 365 connection is configured.</span>');
+    setBanner('local', '<span>💻 <strong>Local preview mode.</strong> Changes are saved only in this browser and are not shared with other DIG, Program Review, or Curriculum members. Use <strong>Send update</strong> on the Combined board to share changes; shared storage switches on once RTC\'s Microsoft 365 connection is configured.</span>');
   }
+  routeFromHash();
 })();
 </script>
 </body>
